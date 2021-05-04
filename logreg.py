@@ -10,12 +10,12 @@ def main():
         valid_path: Path to CSV file containing dataset for validation.
         save_path: Path to save predicted probabilities using np.savetxt().
     """
-    x_train, y_train = img_proc.slice_data_sequential()
+    x_train, y_train = next(img_proc.slice_data_sequential('data/train_sep', 100))
     clf = LogisticRegression()
     clf.fit(x_train, y_train)
 
-    x_valid, y_valid = img_proc.slice_data_sequential()
-    predictions = LogisticRegression.predict(x_valid)
+    x_valid, y_valid = next(img_proc.slice_data_sequential('data/valid', 100))
+    predictions = clf.predict(x_valid)
     accuracy = np.mean(predictions == y_train)
     print(f"The accuracy on validation set was {accuracy}")
 
@@ -23,7 +23,7 @@ def main():
 
 class LogisticRegression:
 
-    def __init__(self, step_size=1.0, max_iter=1000000, eps=1e-5,
+    def __init__(self, step_size=0.01, max_iter=1000000, eps=1e-5,
                  theta_0=None, verbose=True):
         """
         Args:
@@ -40,7 +40,7 @@ class LogisticRegression:
         self.verbose = verbose
 
     def sigmoid_theta(self, x):
-        return np.exp(np.dot(self.theta, x))
+        return 1 / (1 + np.exp(-np.dot(self.theta, x)))
 
     def fit(self, x, y):
         """
@@ -73,7 +73,7 @@ class LogisticRegression:
             Outputs of shape (n_examples,).
         """
         predicted_probability = np.exp(np.dot(x, self.theta))
-        outputs = np.empty(predicted_probability.shape())
+        outputs = np.empty(predicted_probability.shape)
         for i in range(len(x)):
             if predicted_probability[i] >= 0.5:
                 outputs[i] = 1
