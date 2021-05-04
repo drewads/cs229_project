@@ -9,6 +9,9 @@ def resize(img):
 def flatten_pixels(img_list):
     return [color_val for pixel in img_list for color_val in pixel]
 
+def normalize_data(data):
+    return data / 255
+
 def num_data(dir_path):
     top_dir = Path(dir_path)
     true_dir_path = top_dir / 'Melanoma'
@@ -34,7 +37,7 @@ def slice_data_sequential(dir_path, batch_size):
 
     while (true_counter < len(true_dir) or false_counter < len(false_dir)):
         if batch_counter == batch_size:
-            yield (np.array(batch_x), np.array(batch_y))
+            yield (normalize_data(np.array(batch_x)), np.array(batch_y))
             batch_counter = 0
             batch_x = []
             batch_y = []
@@ -56,4 +59,4 @@ def slice_data_sequential(dir_path, batch_size):
             batch_counter += 1
     
     if len(batch_x) > 0:
-        yield (np.array(batch_x), np.array(batch_y))
+        yield (normalize_data(np.array(batch_x)), np.array(batch_y))
