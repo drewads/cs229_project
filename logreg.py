@@ -1,6 +1,14 @@
 import numpy as np
 import img_proc
 
+def normalize(X):
+    m = np.shape(X)[0] # number of examples
+    n = np.shape(X)[1] # number of features in an example
+    mu = np.reshape(np.sum(X,axis=0),(1,n))/m
+    return (X - mu)/255
+    # Sigma = np.cov(X.T)
+    # return np.solve(Sigma,X_centred)
+
 
 def main():
     """Problem: Logistic regression
@@ -12,13 +20,13 @@ def main():
     """
     x_train, y_train = next(img_proc.slice_data_sequential('data/train_sep', 100))
     clf = LogisticRegression()
-    clf.fit(x_train, y_train)
+    clf.fit(normalize(x_train), y_train)
 
     x_valid, y_valid = next(img_proc.slice_data_sequential('data/valid', 100))
-    predictions = clf.predict(x_valid)
+    predictions = clf.predict(normalize(x_valid))
     accuracy = np.mean(predictions == y_train)
     print(f"The accuracy on validation set was {accuracy}")
-
+    auc_roc,threshold_best = evaluate.ROCandAUROC(predictions,y_valid,'ROC_test_data.jpeg')
 
 
 class LogisticRegression:
