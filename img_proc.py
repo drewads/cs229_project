@@ -10,7 +10,7 @@ def flatten_pixels(img_list):
     return [color_val for pixel in img_list for color_val in pixel]
 
 def normalize_data(data):
-    return data / 255
+    return data #/ 255
 
 def num_data(dir_path):
     top_dir = Path(dir_path)
