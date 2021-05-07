@@ -4,6 +4,7 @@ import numpy as np
 from keras.models import Sequential
 from keras.layers import Dense
 from tensorflow.keras import regularizers
+# from keras.utils.vis_utils import plot_model
 import img_proc
 
 def DLNN(X,Y,nn_dims,epochs = 500,batch_size = 25,loss='binary_crossentropy',lambd = 1e-4):
@@ -34,6 +35,8 @@ def DLNN(X,Y,nn_dims,epochs = 500,batch_size = 25,loss='binary_crossentropy',lam
 		trained_model.add(Dense(neurons, activation='relu',kernel_initializer = 'glorot_uniform',bias_initializer='zeros', kernel_regularizer=regularizers.l2(lambd), bias_regularizer=regularizers.l2(lambd)))
 
 	trained_model.add(Dense(1, activation='sigmoid',kernel_initializer = 'glorot_uniform',bias_initializer='zeros',kernel_regularizer=regularizers.l2(lambd), bias_regularizer=regularizers.l2(lambd)))
+	print(trained_model.summary())
+	# plot_model(trained_model, to_file='model_plot.png', show_shapes=True, show_layer_names=True)
 	trained_model.compile(loss = loss, optimizer = 'adam', metrics=['accuracy'])
 	trained_model.fit(X, Y, epochs = epochs, batch_size = batch_size)
 
@@ -52,11 +55,11 @@ def main():
 	model = DLNN(normalize(X_train),y_train,[1024,256,64,16,4,1],epochs = 20)
 	y_train_pred = model.predict(X_train)
 
-	X_test, y_test = next(img_proc.slice_data_sequential('data/test', 1000))
+	X_valid, y_valid = next(img_proc.slice_data_sequential('data/valid', 1000))
 	y_test_pred = model.predict(normalize(X_test))
     
 
-	auc_roc,threshold_best = evaluate.ROCandAUROC(y_test_pred,y_test,'ROC_test_data.jpeg')
+	auc_roc,threshold_best = evaluate.ROCandAUROC(y_valid_pred,y_valid,'ROC_valid_data_dlnn.jpeg')
 
 	print(f"\nArea Under ROC = {auc_roc}")
 	tp,fn,fp,tn = evaluate.counts(y_train_pred, y_train, threshold = threshold_best)
@@ -69,9 +72,9 @@ def main():
 	print(f"Specificity = {spec}")
 	print(f"F1 score = {F1}")
 
-	tp,fn,fp,tn = evaluate.counts(y_test_pred, y_test, threshold = threshold_best)
+	tp,fn,fp,tn = evaluate.counts(y_valid_pred, y_valid, threshold = threshold_best)
 	acc,prec,sens,spec,F1 = evaluate.stats(tp,fn,fp,tn)
-	print("\nStats for predictions on test set:")
+	print("\nStats for predictions on validation set:")
 	print(f"Threshold = {threshold_best}")
 	print(f"Accuracy = {acc}")
 	print(f"Precision = {prec}")

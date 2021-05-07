@@ -1,5 +1,6 @@
 import numpy as np
 import img_proc
+import evaluate
 
 def normalize(X):
     m = np.shape(X)[0] # number of examples
@@ -23,10 +24,31 @@ def main():
     clf.fit(normalize(x_train), y_train)
 
     x_valid, y_valid = next(img_proc.slice_data_sequential('data/valid', 100))
-    predictions = clf.predict(normalize(x_valid))
-    accuracy = np.mean(predictions == y_train)
-    print(f"The accuracy on validation set was {accuracy}")
-    auc_roc,threshold_best = evaluate.ROCandAUROC(predictions,y_valid,'ROC_test_data.jpeg')
+    y_train_pred = clf.predict(normalize(x_train))
+    y_valid_pred = clf.predict(normalize(x_valid))
+
+    auc_roc,threshold_best = evaluate.ROCandAUROC(y_valid_pred,y_valid,'ROC_valid_data_log_reg.jpeg')
+
+    print(f"\nArea Under ROC = {auc_roc}")
+    tp,fn,fp,tn = evaluate.counts(y_train_pred, y_train, threshold = threshold_best)
+    acc,prec,sens,spec,F1 = evaluate.stats(tp,fn,fp,tn)
+    print("\nStats for predictions on train set:")
+    print(f"Threshold = {threshold_best}")
+    print(f"Accuracy = {acc}")
+    print(f"Precision = {prec}")
+    print(f"Sensitivity = {sens}")
+    print(f"Specificity = {spec}")
+    print(f"F1 score = {F1}")
+
+    tp,fn,fp,tn = evaluate.counts(y_valid_pred, y_valid, threshold = threshold_best)
+    acc,prec,sens,spec,F1 = evaluate.stats(tp,fn,fp,tn)
+    print("\nStats for predictions on validation set:")
+    print(f"Threshold = {threshold_best}")
+    print(f"Accuracy = {acc}")
+    print(f"Precision = {prec}")
+    print(f"Sensitivity = {sens}")
+    print(f"Specificity = {spec}")
+    print(f"F1 score = {F1}")
 
 
 class LogisticRegression:
@@ -59,7 +81,7 @@ class LogisticRegression:
         """
         if self.theta == None:
             self.theta = np.zeros(np.shape(x)[1])
-
+        print("error")
         for i in range(self.max_iter):
             addition = np.zeros(len(x[0]))
             for j in range(len(x)):
@@ -67,6 +89,7 @@ class LogisticRegression:
                 addition += x[j] * (y[j] - self.sigmoid_theta(x[j]))
             self.theta += self.step_size * addition
             error = np.linalg.norm(addition * self.step_size)
+            print(error)
             if (error < self.eps):
                 return
 
