@@ -13,25 +13,53 @@ def normalize(X):
 
 def main():
     """Problem: Logistic regression
-
-    Args:
-        train_path: Path to CSV file containing dataset for training.
-        valid_path: Path to CSV file containing dataset for validation.
-        save_path: Path to save predicted probabilities using np.savetxt().
     """
-    x_train, y_train = next(img_proc.slice_data_sequential('data/train_sep', 100))
-    clf = LogisticRegression()
-    clf.fit(normalize(x_train), y_train)
+    # for step_size in [0.1,0.01]:
+    #     x_train, y_train = next(img_proc.slice_data_sequential('data/train_sep', 500))
+    #     clf = LogisticRegression(step_size=step_size)
+    #     clf.fit(normalize(x_train), y_train)
+    #
+    #     x_valid, y_valid = next(img_proc.slice_data_sequential('data/valid', 500))
+    #     y_train_pred = clf.predict(normalize(x_train))
+    #     y_valid_pred = clf.predict(normalize(x_valid))
+    #
+    #     auc_roc,threshold_best = evaluate.ROCandAUROC(y_valid_pred,y_valid,'ROC_valid_data_log_reg.jpeg')
+    #
+    #     print(f"Stats for step size {step_size}")
+    #     print(f"\nArea Under ROC = {auc_roc}")
+    #     tp,fn,fp,tn = evaluate.counts(y_train_pred, y_train, threshold = threshold_best)
+    #     acc,prec,sens,spec,F1 = evaluate.stats(tp,fn,fp,tn)
+    #     print("\nStats for predictions on train set:")
+    #     print(f"Threshold = {threshold_best}")
+    #     print(f"Accuracy = {acc}")
+    #     print(f"Precision = {prec}")
+    #     print(f"Sensitivity = {sens}")
+    #     print(f"Specificity = {spec}")
+    #     print(f"F1 score = {F1}")
+    #
+    #     tp,fn,fp,tn = evaluate.counts(y_valid_pred, y_valid, threshold = threshold_best)
+    #     acc,prec,sens,spec,F1 = evaluate.stats(tp,fn,fp,tn)
+    #     print("\nStats for predictions on validation set:")
+    #     print(f"Threshold = {threshold_best}")
+    #     print(f"Accuracy = {acc}")
+    #     print(f"Precision = {prec}")
+    #     print(f"Sensitivity = {sens}")
+    #     print(f"Specificity = {spec}")
+    #     print(f"F1 score = {F1}")
+    step_size = 0.01
+    x_train, y_train = next(img_proc.slice_data_sequential('data/train_sep', 1000))
+    x_valid, y_valid = next(img_proc.slice_data_sequential('data/valid', 1000))
+    print("mini batch")
+    clf2 = LogisticRegression()
+    clf2.fit_mini_batch(x_train,y_train,100)
+    y_train_pred2 = clf2.predict(normalize(x_train))
+    y_valid_pred2 = clf2.predict(normalize(x_valid))
+    auc_roc, threshold_best = evaluate.ROCandAUROC(y_valid_pred2, y_valid, 'ROC_valid_data_log_reg_mini_batch.jpeg')
 
-    x_valid, y_valid = next(img_proc.slice_data_sequential('data/valid', 100))
-    y_train_pred = clf.predict(normalize(x_train))
-    y_valid_pred = clf.predict(normalize(x_valid))
-
-    auc_roc,threshold_best = evaluate.ROCandAUROC(y_valid_pred,y_valid,'ROC_valid_data_log_reg.jpeg')
-
+    print(f"Stats for step size {step_size}")
     print(f"\nArea Under ROC = {auc_roc}")
-    tp,fn,fp,tn = evaluate.counts(y_train_pred, y_train, threshold = threshold_best)
-    acc,prec,sens,spec,F1 = evaluate.stats(tp,fn,fp,tn)
+    tp, fn, fp, tn = evaluate.counts(y_train_pred2, y_train, threshold=threshold_best)
+    acc, prec, sens, spec, F1 = evaluate.stats(tp, fn, fp, tn)
     print("\nStats for predictions on train set:")
     print(f"Threshold = {threshold_best}")
     print(f"Accuracy = {acc}")
@@ -40,8 +68,8 @@ def main():
     print(f"Specificity = {spec}")
     print(f"F1 score = {F1}")
 
-    tp,fn,fp,tn = evaluate.counts(y_valid_pred, y_valid, threshold = threshold_best)
-    acc,prec,sens,spec,F1 = evaluate.stats(tp,fn,fp,tn)
+    tp, fn, fp, tn = evaluate.counts(y_valid_pred2, y_valid, threshold=threshold_best)
+    acc, prec, sens, spec, F1 = evaluate.stats(tp, fn, fp, tn)
     print("\nStats for predictions on validation set:")
     print(f"Threshold = {threshold_best}")
     print(f"Accuracy = {acc}")
@@ -49,7 +77,6 @@ def main():
     print(f"Sensitivity = {sens}")
     print(f"Specificity = {spec}")
     print(f"F1 score = {F1}")
-
 
 class LogisticRegression:
 
@@ -81,18 +108,29 @@ class LogisticRegression:
         """
         if self.theta == None:
             self.theta = np.zeros(np.shape(x)[1])
-        print("error")
         for i in range(self.max_iter):
             addition = np.zeros(len(x[0]))
             for j in range(len(x)):
-                #addition += x[j] * (y[j] - np.exp(np.dot(self.theta, x[j])))
                 addition += x[j] * (y[j] - self.sigmoid_theta(x[j]))
             self.theta += self.step_size * addition
             error = np.linalg.norm(addition * self.step_size)
-            print(error)
             if (error < self.eps):
                 return
 
+    def fit_mini_batch(self, x, y, batch_size):
+        if self.theta == None:
+            self.theta = np.zeros(np.shape(x)[1])
+
+        for i in range(self.max_iter):
+            for k in range(int(len(x) / batch_size)):
+                addition = np.zeros(len(x[0]))
+                for j in range(batch_size):
+                    addition += x[j] * (y[j] - self.sigmoid_theta(x[j]))
+                self.theta += self.step_size * addition
+                error = np.linalg.norm(addition * self.step_size)
+                if (error < self.eps):
+                    print(f"It took {i} iterations with step size {self.step_size}")
+                    return
 
     def predict(self, x):
         """Return predicted probabilities given new inputs x.
