@@ -22,7 +22,7 @@ from matplotlib.pyplot import imshow
 
 %matplotlib inline
 
-def model(input_shape):
+def CNN(X,y,batch_size = 20,epochs = 10):
     """
     input_shape: The height, width and channels as a tuple.  
         Note that this does not include the 'batch' as a dimension.
@@ -31,54 +31,83 @@ def model(input_shape):
         X_train.shape[1:]
     """
 
-    # Define the input placeholder as a tensor with shape input_shape. Think of this as your input image!
-    X_input = Input(input_shape)
+    X_input = Input(input_shape) #shape: 224x224x3
 
-    # Zero-Padding: pads the border of X_input with zeroes
-    X = ZeroPadding2D((3, 3))(X_input)
-
-    # CONV -> BN -> RELU Block applied to X
-    X = Conv2D(32, (7, 7), strides = (1, 1), name = 'conv0')(X)
+    X = ZeroPadding2D((3, 3))(X_input) #shape: 230x230x3
+    X = Conv2D(filters=32, kernel_size=(7, 7), strides = (1, 1), name = 'conv0')(X) #shape: 224x224x32
     X = BatchNormalization(axis = 3, name = 'bn0')(X)
     X = Activation('relu')(X)
+    X = MaxPooling2D(pool_size=(2, 2), strides=(2,2),name='max_pool0')(X) #shape: 112x112x32
 
-    # MAXPOOL
-    X = MaxPooling2D((2, 2), name='max_pool')(X)
+    X = ZeroPadding2D((2, 2))(X_input) #shape: 116x116x32
+    X = Conv2D(filters=64, kernel_size=(5, 5), strides = (1, 1), name = 'conv1')(X) #shape: 112x112x64
+    X = BatchNormalization(axis = 3, name = 'bn1')(X)
+    X = Activation('relu')(X)
+    X = MaxPooling2D(pool_size=(2, 2), strides=(2,2),name='max_pool1')(X) #shape: 56x56x64
 
-    # FLATTEN X (means convert it to a vector) + FULLYCONNECTED
-    X = Flatten()(X)
-    X = Dense(1, activation='sigmoid', name='fc')(X)
+    X = ZeroPadding2D((1, 1))(X_input) #shape: 58x58x64
+    X = Conv2D(filters=128, kernel_size=(3, 3), strides = (1, 1), name = 'conv2')(X) #shape: 56x56x128
+    X = BatchNormalization(axis = 3, name = 'bn2')(X)
+    X = Activation('relu')(X)
+    X = MaxPooling2D(pool_size=(2, 2), strides=(2,2),name='max_pool2')(X) #shape: 28x28x128
 
-    # Create model. This creates your Keras model instance, you'll use this instance to train/test the model.
-    model = Model(inputs = X_input, outputs = X, name='CNN')
+    X = Conv2D(filters=128, kernel_size=(3, 3), strides = (3, 3), name = 'conv3')(X) #shape: 9x9x128
+    X = BatchNormalization(axis = 3, name = 'bn3')(X)
+    X = Activation('relu')(X)
+    X = MaxPooling2D(pool_size=(3,3), strides=(3,3),name='max_pool3')(X) #shape: 3x3x128
 
-    return modeldef 
 
+    X = Flatten()(X) #shape: 1152
+    X = Dense(units=512, activation='relu', name='fc0')(X)
+    X = Dense(units=32, activation='relu', name='fc1')(X)
+    X = Dense(units=1, activation='sigmoid', name='fc2')(X)
+
+    model = Model(inputs = X_input, outputs = X, name='CNN') # Total number of trainable params = 737,537
+    model.compile(optimizer = "Adam", loss = "binary_cross_entropy", metrics = ["accuracy"])
+    model.fit(x = X, y = y, epochs = epochs, batch_size = batch_size)
+
+    return model 
+
+def normalize(X):
+    m = np.shape(X)[0] # number of examples
+    n = np.shape(X)[1] # number of features in an example 
+    mu = np.reshape(np.sum(X,axis=0),(1,n))/m
+    return (X - mu)/255
 
 def main():
-	X_train, y_train = util.load_csv('training_data.csv', add_intercept=True)
-	X_test, y_test = util.load_csv('test_data.csv', add_intercept=True)
+    data = Data_Generator('data/train_sep', 1000, shuffle=True, flatten=False)
+    X_train, y_train = data.__getitem__(1)
 
-	model = CNN(np.shape(X_train))
-	model.compile(optimizer = "adam", loss = "binary_cross_entropy", metrics = ["accuracy"])
-	model.fit(x = X_train, y = Y_train, epochs = 100, batch_size = 10)
+    # X_train, y_train = next(img_proc.slice_data_sequential('data/train_sep', 1000))
+    model = CNN(normalize(X_train),y_train, batch_size = 20, epochs = 10)
+    y_train_pred = model.predict(X_train)
 
-	y_train_pred = model.predict(X_train, Y_train)
-	y_test_pred = model.predict(X_test, Y_test)
+    X_valid, y_valid = next(img_proc.slice_data_sequential('data/valid', 1000))
+    y_test_pred = model.predict(normalize(X_test))
     
 
-	evaluate.ROCandAUROC(y_train_pred,y_train,'eval_train_data.txt','ROC_train_data.jpeg','AUROC_train_data.jpeg')	
-	evaluate.ROCandAUROC(y_test_pred,y_test,'eval_test_data.txt','ROC_test_data.jpeg','AUROC_test_data.jpeg')
+    auc_roc,threshold_best = evaluate.ROCandAUROC(y_valid_pred,y_valid,'ROC_valid_data_cnn.jpeg')
 
-	thresh = 0.5
-	tp,fn,fp,tn = counts(y_test_pred, y_test, threshold = thresh)
-	acc,prec,sens,spec,F1 = stats(tp,fn,fp,tn)
-	print(f"{Threshold = {thresh}}")
-	print(f"{Accuracy = {acc}}")
-	print(f"{Precision = {prec}}")
-	print(f"{Sensitivity = {sens}}")
-	print(f"{Specificity = {spec}}")
-	print(f"{F1 score = {F1}}")
+    print(f"\nArea Under ROC = {auc_roc}")
+    tp,fn,fp,tn = evaluate.counts(y_train_pred, y_train, threshold = threshold_best)
+    acc,prec,sens,spec,F1 = evaluate.stats(tp,fn,fp,tn)
+    print("\nStats for predictions on train set:")
+    print(f"Threshold = {threshold_best}")
+    print(f"Accuracy = {acc}")
+    print(f"Precision = {prec}")
+    print(f"Sensitivity = {sens}")
+    print(f"Specificity = {spec}")
+    print(f"F1 score = {F1}")
+
+    tp,fn,fp,tn = evaluate.counts(y_valid_pred, y_valid, threshold = threshold_best)
+    acc,prec,sens,spec,F1 = evaluate.stats(tp,fn,fp,tn)
+    print("\nStats for predictions on validation set:")
+    print(f"Threshold = {threshold_best}")
+    print(f"Accuracy = {acc}")
+    print(f"Precision = {prec}")
+    print(f"Sensitivity = {sens}")
+    print(f"Specificity = {spec}")
+    print(f"F1 score = {F1}")
 
 if __name__ == "__main__":
     main()
