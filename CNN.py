@@ -1,4 +1,5 @@
 import evaluate
+import img_proc
 import csv
 import numpy as np
 from keras import layers
@@ -10,28 +11,24 @@ from keras.utils import layer_utils
 from keras.utils.data_utils import get_file
 from keras.applications.imagenet_utils import preprocess_input
 import pydot
-from IPython.display import SVG
-from keras.utils.vis_utils import model_to_dot
-from keras.utils import plot_model
-from kt_utils import *
+# from IPython.display import SVG
+# from keras.utils.vis_utils import model_to_dot
+# from keras.utils import plot_model
+# from kt_utils import *
 
 import keras.backend as K
 K.set_image_data_format('channels_last')
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import imshow
 
-%matplotlib inline
+# %matplotlib inline
 
-def CNN(X,y,batch_size = 20,epochs = 10):
+def CNN(X_train,y_train,batch_size = 20,epochs = 10):
     """
-    input_shape: The height, width and channels as a tuple.  
-        Note that this does not include the 'batch' as a dimension.
-        If you have a batch like 'X_train', 
-        then you can provide the input_shape using
-        X_train.shape[1:]
+   
     """
 
-    X_input = Input(input_shape) #shape: 224x224x3
+    X_input = Input(X_train.shape[1:]) #shape: 224x224x3
 
     X = ZeroPadding2D((3, 3))(X_input) #shape: 230x230x3
     X = Conv2D(filters=32, kernel_size=(7, 7), strides = (1, 1), name = 'conv0')(X) #shape: 224x224x32
@@ -63,27 +60,31 @@ def CNN(X,y,batch_size = 20,epochs = 10):
     X = Dense(units=1, activation='sigmoid', name='fc2')(X)
 
     model = Model(inputs = X_input, outputs = X, name='CNN') # Total number of trainable params = 737,537
-    model.compile(optimizer = "Adam", loss = "binary_cross_entropy", metrics = ["accuracy"])
-    model.fit(x = X, y = y, epochs = epochs, batch_size = batch_size)
+    model.compile(optimizer = "Adam", loss = 'binary_crossentropy', metrics = ["accuracy"])
+    model.fit(x = X_train, y = y_train, epochs = epochs, batch_size = batch_size)
 
     return model 
 
 def normalize(X):
     m = np.shape(X)[0] # number of examples
-    n = np.shape(X)[1] # number of features in an example 
-    mu = np.reshape(np.sum(X,axis=0),(1,n))/m
+    n_H = np.shape(X)[1] # number of features in an example 
+    n_W = np.shape(X) [2]
+    n_C = np.shape(X)[3]
+    mu = np.reshape(np.sum(X,axis=0),(n_H,n_W,n_C))/m
+    print(f"Shape normalized X = {((X - mu)/255).shape}")
     return (X - mu)/255
 
 def main():
-    data = Data_Generator('data/train_sep', 1000, shuffle=True, flatten=False)
-    X_train, y_train = data.__getitem__(1)
-
-    # X_train, y_train = next(img_proc.slice_data_sequential('data/train_sep', 1000))
-    model = CNN(normalize(X_train),y_train, batch_size = 20, epochs = 10)
+    data_train = img_proc.Data_Generator('data/train_sep', 1000, shuffle=True, flatten=False)
+    X_train, y_train = data_train.__getitem__(1)
+    print(f"X_train.shape = {X_train.shape}")
+    print(f"y_train.shape = {y_train.shape}")
+    model = CNN(normalize(X_train),y_train, batch_size = 25, epochs = 5)
     y_train_pred = model.predict(X_train)
 
-    X_valid, y_valid = next(img_proc.slice_data_sequential('data/valid', 1000))
-    y_test_pred = model.predict(normalize(X_test))
+    data_valid = img_proc.Data_Generator('data/valid', 1000, shuffle=True, flatten=False)
+    X_valid, y_valid = data_valid.__getitem__(1)
+    y_valid_pred = model.predict(normalize(X_valid))
     
 
     auc_roc,threshold_best = evaluate.ROCandAUROC(y_valid_pred,y_valid,'ROC_valid_data_cnn.jpeg')
