@@ -67,7 +67,7 @@ def CNN(X_train,y_train,batch_size = 20,epochs = 10):
 
 def normalize(X):
     m = np.shape(X)[0] # number of examples
-    n_H = np.shape(X)[1] # number of features in an example 
+    n_H = np.shape(X)[1] 
     n_W = np.shape(X) [2]
     n_C = np.shape(X)[3]
     mu = np.reshape(np.sum(X,axis=0),(n_H,n_W,n_C))/m
@@ -75,35 +75,40 @@ def normalize(X):
     return (X - mu)/255
 
 def main():
-    data_train = img_proc.Data_Generator('data/train_sep', 1000, shuffle=True, flatten=False)
+    data_train = img_proc.Data_Generator('data/train_sep', 100, shuffle=True, flatten=False)
     X_train, y_train = data_train.__getitem__(1)
     print(f"X_train.shape = {X_train.shape}")
     print(f"y_train.shape = {y_train.shape}")
-    model = CNN(normalize(X_train),y_train, batch_size = 25, epochs = 5)
-    y_train_pred = model.predict(X_train)
+    model = CNN(normalize(X_train),y_train, batch_size = 10, epochs = 5)
+    y_train_pred = model.predict(normalize(X_train))
 
-    data_valid = img_proc.Data_Generator('data/valid', 1000, shuffle=True, flatten=False)
+    data_valid = img_proc.Data_Generator('data/valid', 100, shuffle=True, flatten=False)
     X_valid, y_valid = data_valid.__getitem__(1)
     y_valid_pred = model.predict(normalize(X_valid))
     
+    #saving data to csv
+    data = np.concatenate((y_train,y_train_pred,y_valid,y_valid_pred),axis=1)
+    np.savetxt('predictions_cnn.csv',data,delimiter=',',header='Y_train,y_train_pred,y_valid,y_valid_pred')
 
-    auc_roc,threshold_best = evaluate.ROCandAUROC(y_valid_pred,y_valid,'ROC_valid_data_cnn.jpeg')
+    #calculating metrics
+    threshold_best_accuracy = evaluate.find_best_threshold(y_valid_pred,y_valid)
+    auc_roc,threshold_best = evaluate.ROCandAUROC(y_valid_pred,y_valid,'ROC_valid_data_cnn.jpeg', 'ROC_valid_data_cnn.csv')
 
     print(f"\nArea Under ROC = {auc_roc}")
-    tp,fn,fp,tn = evaluate.counts(y_train_pred, y_train, threshold = threshold_best)
+    tp,fn,fp,tn = evaluate.counts(y_train_pred, y_train, threshold = threshold_best_accuracy) #threshold_best)
     acc,prec,sens,spec,F1 = evaluate.stats(tp,fn,fp,tn)
     print("\nStats for predictions on train set:")
-    print(f"Threshold = {threshold_best}")
+    print(f"Threshold = {threshold_best_accuracy}") #threshold_best}")
     print(f"Accuracy = {acc}")
     print(f"Precision = {prec}")
     print(f"Sensitivity = {sens}")
     print(f"Specificity = {spec}")
     print(f"F1 score = {F1}")
 
-    tp,fn,fp,tn = evaluate.counts(y_valid_pred, y_valid, threshold = threshold_best)
+    tp,fn,fp,tn = evaluate.counts(y_valid_pred, y_valid, threshold = threshold_best_accuracy) #threshold_best)
     acc,prec,sens,spec,F1 = evaluate.stats(tp,fn,fp,tn)
     print("\nStats for predictions on validation set:")
-    print(f"Threshold = {threshold_best}")
+    print(f"Threshold = {threshold_best_accuracy}") #threshold_best}")
     print(f"Accuracy = {acc}")
     print(f"Precision = {prec}")
     print(f"Sensitivity = {sens}")

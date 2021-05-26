@@ -2,6 +2,7 @@ from sklearn.metrics import roc_curve
 from sklearn.metrics import roc_auc_score
 import numpy as np
 import matplotlib.pyplot as plt
+import csv 
 
 def counts(y_pred, y_true, threshold = 0.5):
 	""" 
@@ -58,7 +59,7 @@ def stats(tp,fn,fp,tn):
 
 	return accuracy,precision,sensitivity,specificity,F1
 
-def ROCandAUROC(y_pred,y_true,ROC_path = 'ROC.jpeg'):
+def ROCandAUROC(y_pred,y_true,jpeg_path = 'ROC.jpeg',csv_path = 'ROC.csv'):
 
 	#getting true positive rate and false positive rate
 	fpr, tpr, thresholds = roc_curve(y_true, y_pred)
@@ -71,7 +72,7 @@ def ROCandAUROC(y_pred,y_true,ROC_path = 'ROC.jpeg'):
 	plt.plot(fpr, tpr)
 	plt.ylabel('True Positive Rate')
 	plt.xlabel('False Positive Rate')
-	plt.savefig(ROC_path)
+	plt.savefig(jpeg_path)
 
 	auc = roc_auc_score(y_true, y_pred)
 
@@ -82,4 +83,21 @@ def ROCandAUROC(y_pred,y_true,ROC_path = 'ROC.jpeg'):
 		if p[indx_best] <= p[i]:
 			indx_best = i
 
+
+	#saving data to csv
+	thresholds = np.reshape(thresholds,(thresholds.shape[0],1))
+	fpr = np.reshape(fpr,(fpr.shape[0],1))
+	tpr = np.reshape(tpr,(tpr.shape[0],1)) 
+	data = np.concatenate((thresholds,fpr,tpr),axis=1)
+	np.savetxt(csv_path,data,delimiter=',',header='thresholds,fpr,tpr')
+
 	return auc, thresholds[indx_best]
+
+def find_best_threshold(y_pred,y_true):
+	num_thresholds = 1000
+	thresholds = np.zeros((num_thresholds,1))
+	accuracy = np.zeros((num_thresholds,1))
+	for i in range(num_thresholds):
+		thresholds[i] = i*(1/num_thresholds)
+		accuracy[i] = np.sum(1.0*(1.0*(y_pred > thresholds[i]) == y_true))/y_true.shape[0]
+	return thresholds[np.argmax(accuracy)]
