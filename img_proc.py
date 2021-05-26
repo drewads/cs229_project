@@ -6,42 +6,33 @@ import random
 from pathlib import Path
 from keras.utils import Sequence
 
-## TODO: change all instances of 224 to constant var
+UNCROPPED_COLS = 600
+UNCROPPED_ROWS = 450
 
-def resize(img):
-    return img.reduce(2, box=(76, 1, 524, 449)) if img.size == (600, 450) else img
+CROP_REDUCTION_FACTOR = 2
+
+CROPPED_COLS = 224
+CROPPED_ROWS = 224
 
 def flatten_pixels(img_list):
     return [color_val for pixel in img_list for color_val in pixel]
 
 def unflatten_image(img_list):
-    return [img_list[i*224:(i+1)*224] for i in range(224)]
+    return [img_list[i * CROPPED_COLS : (i + 1) * CROPPED_COLS] for i in range(CROPPED_ROWS)]
 
-def num_features():
-    return 224 * 224 * 3
-
-## TODO: get rid of or change
-def num_examples(dir_path):
-    return num_examples_class(dir_path, 'Melanoma') + num_examples_class(dir_path, 'NotMelanoma')
-
-def num_examples_class(dir_path, classname):
-    top_dir = Path(dir_path)
-    class_dir_path = top_dir / classname
-    class_dir = os.listdir(class_dir_path)
-    return len(class_dir)
-
-# make generator class that accepts a shuffle parameter, batch size, directory, etc.
-# in init, we look at all the file names. prepend Melanoma or NotMelanoma to each file name if shuffle is true, we randomize the list. if false, we sort it
-# in len, we do num indices / batch size
-# have function that is get labels in order
-
-def normalize(X):
+def normalize_flat(X):
 	m = np.shape(X)[0] # number of examples
 	n = np.shape(X)[1] # number of features in an example 
 	mu = np.reshape(np.sum(X,axis=0),(1,n))/m
 	return (X - mu)/255
-	# Sigma = np.cov(X.T)
-	# return np.solve(Sigma,X_centred)
+
+def normalize_3D(X):
+    m = np.shape(X)[0] # number of examples
+    n_H = np.shape(X)[1]
+    n_W = np.shape(X) [2]
+    n_C = np.shape(X)[3]
+    mu = np.reshape(np.sum(X,axis=0),(n_H,n_W,n_C))/m
+    return (X - mu)/255
 
 class Data_Generator(Sequence):
     """
@@ -88,8 +79,12 @@ class Data_Generator(Sequence):
 
         for i, xID in enumerate(xID_list):
             with Image.open(self.data_dir / xID) as img:
-                ## TODO: normalize data - do it not for each rgb if flatten but do it for each rgb if not flatten
-                batch_x[i,] = np.array(flatten_pixels(list(img.getdata())) if self.flatten else unflatten_image(list(img.getdata())))
+                # flatten/unflatten data and normalize
+                if self.flatten:
+                    batch_x[i,] = normalize_flat(np.array(flatten_pixels(list(img.getdata()))))
+                else:
+                    batch_x[i,] = normalize_3D(np.array(unflatten_image(list(img.getdata()))))
+
                 batch_y[i,] = self.labels[xID]
 
         return batch_x, batch_y
@@ -97,6 +92,14 @@ class Data_Generator(Sequence):
     def __getitem__(self, index):
         x, y = self.__data_generation(self.xIDs[index*self.batch_size:(index+1)*self.batch_size])
         return x, y
+
+def resize(img):
+    if img.size == (UNCROPPED_COLS, UNCROPPED_ROWS):
+        column_offset = (UNCROPPED_COLS - CROPPED_COLS * CROP_REDUCTION_FACTOR) // 2
+        row_offset = (UNCROPPED_ROWS - CROPPED_ROWS * CROP_REDUCTION_FACTOR) // 2
+        return img.reduce(CROP_REDUCTION_FACTOR, box=(column_offset, row_offset, UNCROPPED_COLS - column_offset, UNCROPPED_ROWS - row_offset))
+    else:
+        return img
 
 # gets data from dir_path_src, resizes it to 224x224, and saves it in dir_path_dest
 def process_data(dir_path_src, dir_path_dest):
