@@ -147,6 +147,7 @@ class LogisticRegression:
 
                 error_epoch += np.linalg.norm(gradient * self.step_size)
             
+            print(f"Average error on epoch {epoch} is {error_epoch}")
             if (error_epoch / data_gen.__len__() < self.eps):
                 print(f"It took {i} iterations with step size {self.step_size}")
                 return
