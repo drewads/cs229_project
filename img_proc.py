@@ -13,6 +13,7 @@ CROP_REDUCTION_FACTOR = 2
 
 CROPPED_COLS = 224
 CROPPED_ROWS = 224
+CHANNELS = 3
 
 def flatten_pixels(img_list):
     return [color_val for pixel in img_list for color_val in pixel]
@@ -65,6 +66,9 @@ class Data_Generator(Sequence):
     def labels(self):
         return np.array([self.labels[xID] for xID in self.xIDs])
 
+    def num_features_flat(self):
+        return CROPPED_ROWS * CROPPED_COLS * CHANNELS
+
     def __len__(self):
         return len(self.xIDs) // self.batch_size
 
@@ -73,21 +77,16 @@ class Data_Generator(Sequence):
             random.shuffle(self.xIDs)
 
     def __data_generation(self, xID_list):
-        x_shape = (self.batch_size, 224*224*3) if self.flatten else (self.batch_size, 224, 224, 3)
+        x_shape = (self.batch_size, CROPPED_ROWS*CROPPED_COLS*CHANNELS) if self.flatten else (self.batch_size, CROPPED_ROWS, CROPPED_COLS, CHANNELS)
         batch_x = np.empty(x_shape)
         batch_y = np.empty((self.batch_size, 1), dtype=int)
 
         for i, xID in enumerate(xID_list):
             with Image.open(self.data_dir / xID) as img:
-                # flatten/unflatten data and normalize
-                if self.flatten:
-                    batch_x[i,] = normalize_flat(np.array(flatten_pixels(list(img.getdata()))))
-                else:
-                    batch_x[i,] = normalize_3D(np.array(unflatten_image(list(img.getdata()))))
-
+                batch_x[i,] = np.array(flatten_pixels(list(img.getdata())) if self.flatten else unflatten_image(list(img.getdata())))
                 batch_y[i,] = self.labels[xID]
 
-        return batch_x, batch_y
+        return (normalize_flat(batch_x) if self.flatten else normalize_3D(batch_x)), batch_y
 
     def __getitem__(self, index):
         x, y = self.__data_generation(self.xIDs[index*self.batch_size:(index+1)*self.batch_size])
