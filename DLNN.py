@@ -34,7 +34,7 @@ def DLNN(data_gen,nn_dims,epochs = 500,batch_size = 25,loss='binary_crossentropy
 	print(trained_model.summary())
 	# plot_model(trained_model, to_file='model_plot.png', show_shapes=True, show_layer_names=True)
 	trained_model.compile(loss = loss, optimizer = 'adam', metrics=['accuracy'])
-	trained_model.fit(data_gen, epochs = epochs)
+	trained_model.fit(data_gen, epochs = epochs, use_multiprocessing=True, workers=4)
 
 	return trained_model
 
@@ -44,11 +44,11 @@ def main():
 	model = DLNN(data_gen_train,[1024,256,64,16,4,1],epochs = 20)
 
 	data_gen_train_test = img_proc.Data_Generator('data/train_sep', BATCH_SIZE, shuffle=False, flatten=True)
-	y_train = data_gen_train_test.labels()
+	y_train = data_gen_train_test.get_labels()
 	y_train_pred = model.predict(data_gen_train_test)
 
 	data_gen_valid = img_proc.Data_Generator('data/valid', BATCH_SIZE, shuffle=False, flatten=True)
-	y_valid = data_gen_valid.labels()
+	y_valid = data_gen_valid.get_labels()
 	y_valid_pred = model.predict(data_gen_valid)
     
 	auc_roc,threshold_best = evaluate.ROCandAUROC(y_valid_pred,y_valid,'ROC_valid_data_dlnn.jpeg')

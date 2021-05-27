@@ -39,18 +39,22 @@ def main():
     #     print(f"Specificity = {spec}")
     #     print(f"F1 score = {F1}")
     step_size = 0.01
+    TRAIN_BATCH_SIZE = 1000
     BATCH_SIZE = 100
-    data_gen_train = img_proc.Data_Generator('data/train_sep', BATCH_SIZE, shuffle=True, flatten=True)
+    TRAIN_DATA_DIR = 'data_small'
+    DATA_DIR = 'data'
+    data_gen_train = img_proc.Data_Generator(TRAIN_DATA_DIR + '/train_sep', TRAIN_BATCH_SIZE, shuffle=True, flatten=True)
+    x_train, y_train = data_gen_train.__getitem__(0)
     print("mini batch")
     clf2 = LogisticRegression()
-    clf2.fit_from_gen(data_gen_train)
+    clf2.fit_mini_batch(x_train, y_train, BATCH_SIZE)
 
-    data_gen_train_test = img_proc.Data_Generator('data/train_sep', BATCH_SIZE, shuffle=False, flatten=True)
-    y_train = data_gen_train_test.labels()
-    y_train_pred2 = clf2.predict_from_gen(data_gen_train_test)
+    print("test with training data")
+    y_train_pred2 = clf2.predict(x_train)
 
-    data_gen_valid = img_proc.Data_Generator('data/valid', BATCH_SIZE, shuffle=False, flatten=True)
-    y_valid = data_gen_valid.labels()
+    print("test with validation data")
+    data_gen_valid = img_proc.Data_Generator(DATA_DIR + '/valid', BATCH_SIZE, shuffle=False, flatten=True)
+    y_valid = data_gen_valid.get_labels()
     y_valid_pred2 = clf2.predict_from_gen(data_gen_valid)
 
     auc_roc, threshold_best = evaluate.ROCandAUROC(y_valid_pred2, y_valid, 'ROC_valid_data_log_reg_mini_batch.jpeg')

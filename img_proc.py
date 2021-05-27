@@ -63,7 +63,7 @@ class Data_Generator(Sequence):
         else:
             self.xIDs.sort()
         
-    def labels(self):
+    def get_labels(self):
         return np.array([self.labels[xID] for xID in self.xIDs])
 
     def num_features_flat(self):
