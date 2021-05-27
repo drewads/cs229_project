@@ -47,8 +47,8 @@ class Data_Generator(Sequence):
         self.xIDs = []
         self.labels = {}
 
-        true_ids = ['Melanoma/' + filename for filename in os.listdir(self.data_dir / 'Melanoma')]
-        false_ids = ['NotMelanoma/' + filename for filename in os.listdir(self.data_dir / 'NotMelanoma')]
+        true_ids = ['Melanoma/' + filename for filename in os.listdir(self.data_dir / 'Melanoma') if not filename.startswith('.')]
+        false_ids = ['NotMelanoma/' + filename for filename in os.listdir(self.data_dir / 'NotMelanoma') if not filename.startswith('.')]
 
         for id in true_ids:
             self.labels[id] = 1
