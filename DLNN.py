@@ -6,6 +6,7 @@ from keras.layers import Dense
 from tensorflow.keras import regularizers
 # from keras.utils.vis_utils import plot_model
 import img_proc
+from img_proc import Data_Generator
 
 def DLNN(data_gen,nn_dims,epochs = 500,batch_size = 25,loss='binary_crossentropy',lambd = 1e-4):
 	""" 
