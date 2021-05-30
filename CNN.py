@@ -73,7 +73,7 @@ def main():
     # X_train, y_train = data_train.__getitem__(1)
     # print(f"X_train.shape = {X_train.shape}")
     # print(f"y_train.shape = {y_train.shape}")
-    model = CNN(data_gen_train, epochs = 5)
+    model = CNN(data_gen_train, epochs = 15)
     model.save('savedCNN')
 
     data_gen_train_test = img_proc.Data_Generator(DATA_DIR / 'valid', BATCH_SIZE, shuffle=False, flatten=False)
