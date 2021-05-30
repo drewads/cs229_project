@@ -66,6 +66,7 @@ class Data_Generator(Sequence):
         
     def get_labels(self):
         labels = np.array([self.labels[xID] for xID in self.xIDs])
+        labels = labels[:-(labels.shape[0] % self.batch_size)]
         labels.shape = (labels.shape[0], 1)
         return labels
 
