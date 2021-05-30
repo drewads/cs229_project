@@ -64,7 +64,9 @@ class Data_Generator(Sequence):
             self.xIDs.sort()
         
     def get_labels(self):
-        return np.array([self.labels[xID] for xID in self.xIDs])
+        labels = np.array([self.labels[xID] for xID in self.xIDs])
+        labels.shape = (labels.shape[0], 1)
+        return labels
 
     def num_features_flat(self):
         return CROPPED_ROWS * CROPPED_COLS * CHANNELS
