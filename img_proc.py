@@ -39,11 +39,12 @@ class Data_Generator(Sequence):
     """
     Data_Generator
     """
-    def __init__(self, dir_path, batch_size, shuffle=True, flatten=False):
+    def __init__(self, dir_path, batch_size, shuffle=True, flatten=False, model=None):
         self.data_dir = Path(dir_path)
         self.batch_size = batch_size
         self.shuffle = shuffle
         self.flatten = flatten
+        self.model = model
         self.xIDs = []
         self.labels = {}
 
@@ -95,6 +96,8 @@ class Data_Generator(Sequence):
 
     def __getitem__(self, index):
         x, y = self.__data_generation(self.xIDs[index*self.batch_size:(index+1)*self.batch_size])
+        if self.model:
+            x = self.model.predict(x)
         return x, y
 
 def resize(img):

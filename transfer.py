@@ -3,29 +3,30 @@ import tensorflow as tf
 from tensorflow import keras
 import img_proc
 import evaluate
+from pathlib import Path
 from DLNN import DLNN
 
-def extract_features(base_model, train_data):
-    for sample in train_data:
-        print(sample)
-        print("Before")
-        features = base_model.predict(train_data, steps=100)
-        # TODO: normalize and flatten features vector
-        print("HELLO")
-        print(np.shape(features), np.shape(sample[0]), np.shape(sample[1]))
-        yield (features, sample[1])
+# def extract_features(base_model, train_data):
+#     for sample in train_data:
+#         print(sample)
+#         print("Before")
+#         features = base_model.predict(train_data, steps=100)
+#         # TODO: normalize and flatten features vector
+#         print("HELLO")
+#         print(np.shape(features), np.shape(sample[0]), np.shape(sample[1]))
+#         yield (features, sample[1])
 
-def transfer(train_data, BATCH_SIZE=100):
+def transfer(data_dir, BATCH_SIZE=100):
     base_model = keras.applications.ResNet50(
         weights='imagenet',
         include_top=False)
-    feats = extract_features(base_model, train_data)
-    #model = DLNN(feats, img_proc.num_examples('data/train_sep'), img_proc.num_features(), [1024,256,64,16,4,1], epochs = 20)
+    feats = img_proc.Data_Generator(data_dir / 'train_sep', BATCH_SIZE, shuffle=True, flatten=False, model=base_model)
     model = DLNN(feats, [1024, 256, 64, 16, 4, 1], epochs=20)
-    y_train_pred = model.predict(train_data, steps=100)
-    y_train = train_data.get_labels()
+    data_gen_train_test = img_proc.Data_Generator(data_dir / 'train_sep', BATCH_SIZE, shuffle=False, flatten=False, model=base_model)
+    y_train_pred = model.predict(data_gen_train_test)
+    y_train = data_gen_train_test.get_labels()
 
-    data_gen_valid = img_proc.Data_Generator('data/valid', BATCH_SIZE, shuffle=False, flatten=True)
+    data_gen_valid = img_proc.Data_Generator(data_dir / 'valid', BATCH_SIZE, shuffle=False, flatten=False)
     y_valid = data_gen_valid.get_labels()
     y_valid_pred = model.predict(data_gen_valid)
 
@@ -52,16 +53,10 @@ def transfer(train_data, BATCH_SIZE=100):
     print(f"Specificity = {spec}")
     print(f"F1 score = {F1}")
 
-
-
-
 def main():
-    #TODO: also need to pass normalization function
     BATCH_SIZE = 100
-    train_data = img_proc.Data_Generator('data/train_sep', BATCH_SIZE, shuffle=True, flatten=True)
-    print("HELLO")
-    print(type(train_data))
-    transfer(train_data)
+    DATA_DIR = Path('data_200')
+    transfer(DATA_DIR, BATCH_SIZE)
 
 
 if __name__ == "__main__":
