@@ -2,6 +2,7 @@ import evaluate
 import img_proc
 import csv
 import numpy as np
+from pathlib import Path
 from keras import layers
 from keras.layers import Input, Dense, Activation, ZeroPadding2D, BatchNormalization, Flatten, Conv2D
 from keras.layers import AveragePooling2D, MaxPooling2D, Dropout, GlobalMaxPooling2D, GlobalAveragePooling2D
@@ -66,19 +67,20 @@ def CNN(data_gen,epochs = 10):
     return model
 
 def main():
+    DATA_DIR = Path('data_200')
     BATCH_SIZE = 100
-    data_gen_train = img_proc.Data_Generator('data/train_sep', BATCH_SIZE, shuffle=True, flatten=False)
+    data_gen_train = img_proc.Data_Generator(DATA_DIR / 'train_sep', BATCH_SIZE, shuffle=True, flatten=False)
     # X_train, y_train = data_train.__getitem__(1)
     # print(f"X_train.shape = {X_train.shape}")
     # print(f"y_train.shape = {y_train.shape}")
     model = CNN(data_gen_train, epochs = 5)
     model.save('savedCNN')
 
-    data_gen_train_test = img_proc.Data_Generator('data/valid', BATCH_SIZE, shuffle=False, flatten=False)
+    data_gen_train_test = img_proc.Data_Generator(DATA_DIR / 'valid', BATCH_SIZE, shuffle=False, flatten=False)
     y_train = data_gen_train_test.get_labels()
     y_train_pred = model.predict(data_gen_train_test)
 
-    data_gen_valid = img_proc.Data_Generator('data/valid', BATCH_SIZE, shuffle=False, flatten=False)
+    data_gen_valid = img_proc.Data_Generator(DATA_DIR / 'valid', BATCH_SIZE, shuffle=False, flatten=False)
     y_valid = data_gen_valid.get_labels()
     y_valid_pred = model.predict(data_gen_valid)
     

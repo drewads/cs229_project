@@ -7,8 +7,6 @@ from pathlib import Path
 # for each subdir melanoma and not melanoma, downselect to 500 or 100 examples each (1000/2 or 200/2)
 # output to output dir
 
-os.listdir('data/train_sep')
-
 def dir_existing(dir):
     print(dir)
     if not os.path.exists(dir):
