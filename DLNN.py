@@ -6,7 +6,8 @@ from keras.layers import Dense
 from tensorflow.keras import regularizers
 # from keras.utils.vis_utils import plot_model
 import img_proc
-from img_proc import Data_Generator
+from pathlib import Path
+import argparse
 
 def DLNN(data_gen,nn_dims,epochs = 500,batch_size = 25,loss='binary_crossentropy',lambd = 1e-4):
 	""" 
@@ -39,16 +40,17 @@ def DLNN(data_gen,nn_dims,epochs = 500,batch_size = 25,loss='binary_crossentropy
 
 	return trained_model
 
-def main():
+def main(data_dir):
 	BATCH_SIZE = 100
-	data_gen_train = img_proc.Data_Generator('data/train_sep', BATCH_SIZE, shuffle=True, flatten=True)
+	data_gen_train = img_proc.Data_Generator(data_dir / 'train_sep', BATCH_SIZE, shuffle=True, flatten=True)
 	model = DLNN(data_gen_train,[1024,256,64,16,4,1],epochs = 20)
+	model.save('savedDNN_' + str(data_dir))
 
-	data_gen_train_test = img_proc.Data_Generator('data/train_sep', BATCH_SIZE, shuffle=False, flatten=True)
+	data_gen_train_test = img_proc.Data_Generator(data_dir / 'train_sep', BATCH_SIZE, shuffle=False, flatten=True)
 	y_train = data_gen_train_test.get_labels()
 	y_train_pred = model.predict(data_gen_train_test)
 
-	data_gen_valid = img_proc.Data_Generator('data/valid', BATCH_SIZE, shuffle=False, flatten=True)
+	data_gen_valid = img_proc.Data_Generator(data_dir / 'valid', BATCH_SIZE, shuffle=False, flatten=True)
 	y_valid = data_gen_valid.get_labels()
 	y_valid_pred = model.predict(data_gen_valid)
     
@@ -76,5 +78,10 @@ def main():
 	print(f"F1 score = {F1}")
 
 if __name__ == "__main__":
-    main()
+	parser = argparse.ArgumentParser()
+	parser.add_argument('data_dir', default='data')
+	args = parser.parse_args()
+
+	data_dir = Path(args.data_dir)
+	main(data_dir)
 

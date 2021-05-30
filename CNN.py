@@ -1,5 +1,6 @@
 import evaluate
 import img_proc
+import argparse
 import csv
 import numpy as np
 from pathlib import Path
@@ -66,21 +67,20 @@ def CNN(data_gen,epochs = 10):
 
     return model
 
-def main():
-    DATA_DIR = Path('data')
+def main(data_dir):
     BATCH_SIZE = 100
-    data_gen_train = img_proc.Data_Generator(DATA_DIR / 'train_sep', BATCH_SIZE, shuffle=True, flatten=False)
+    data_gen_train = img_proc.Data_Generator(data_dir / 'train_sep', BATCH_SIZE, shuffle=True, flatten=False)
     # X_train, y_train = data_train.__getitem__(1)
     # print(f"X_train.shape = {X_train.shape}")
     # print(f"y_train.shape = {y_train.shape}")
     model = CNN(data_gen_train, epochs = 15)
-    model.save('savedCNN')
+    model.save('savedCNN_' + str(data_dir))
 
-    data_gen_train_test = img_proc.Data_Generator(DATA_DIR / 'valid', BATCH_SIZE, shuffle=False, flatten=False)
+    data_gen_train_test = img_proc.Data_Generator(data_dir / 'valid', BATCH_SIZE, shuffle=False, flatten=False)
     y_train = data_gen_train_test.get_labels()
     y_train_pred = model.predict(data_gen_train_test)
 
-    data_gen_valid = img_proc.Data_Generator(DATA_DIR / 'valid', BATCH_SIZE, shuffle=False, flatten=False)
+    data_gen_valid = img_proc.Data_Generator(data_dir / 'valid', BATCH_SIZE, shuffle=False, flatten=False)
     y_valid = data_gen_valid.get_labels()
     y_valid_pred = model.predict(data_gen_valid)
     
@@ -114,4 +114,9 @@ def main():
     print(f"F1 score = {F1}")
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('data_dir', default='data')
+    args = parser.parse_args()
+
+    data_dir = Path(args.data_dir)
+    main(data_dir)

@@ -39,11 +39,11 @@ def main():
     #     print(f"Specificity = {spec}")
     #     print(f"F1 score = {F1}")
     step_size = 0.01
-    TRAIN_BATCH_SIZE = 1000
+    TRAIN_DATA_BATCH_SIZE = 1000
     BATCH_SIZE = 100
-    TRAIN_DATA_DIR = 'data_small'
+    TRAIN_DATA_DIR = 'data_1000'
     DATA_DIR = 'data'
-    data_gen_train = img_proc.Data_Generator(TRAIN_DATA_DIR + '/train_sep', TRAIN_BATCH_SIZE, shuffle=True, flatten=True)
+    data_gen_train = img_proc.Data_Generator(TRAIN_DATA_DIR + '/train_sep', TRAIN_DATA_BATCH_SIZE, shuffle=True, flatten=True)
     x_train, y_train = data_gen_train.__getitem__(0)
     print("mini batch")
     clf2 = LogisticRegression()
