@@ -26,12 +26,12 @@ def downselect_examples_set(src_dir, dest_dir, num_examples):
     classes = [filename for filename in os.listdir(src_dir) if not filename.startswith('.')]
 
     for c in classes:
-        downselect_examples_category(src_dir / c, dir_existing(dest_dir / c), num_examples)
+        downselect_examples_category(src_dir / c, dir_existing(dest_dir / c), num_examples // 2)
 
 def downselect_examples_macro_dataset(src_dir, dest_dir, num_examples):
     sets = [filename for filename in os.listdir(src_dir) if not filename.startswith('.')]
     dir_existing(dest_dir)
-    
+
     for s in sets:
         src_set = src_dir / s
         dest_set = dest_dir / s
