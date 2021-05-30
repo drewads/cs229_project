@@ -1,5 +1,6 @@
 .DS_Store
 data/
+data_100/
 gcp-vscode-ssh/
 __pycache__/
 *.pyc

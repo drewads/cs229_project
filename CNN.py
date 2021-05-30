@@ -67,7 +67,7 @@ def CNN(data_gen,epochs = 10):
     return model
 
 def main():
-    DATA_DIR = Path('data_200')
+    DATA_DIR = Path('data')
     BATCH_SIZE = 100
     data_gen_train = img_proc.Data_Generator(DATA_DIR / 'train_sep', BATCH_SIZE, shuffle=True, flatten=False)
     # X_train, y_train = data_train.__getitem__(1)
