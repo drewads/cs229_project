@@ -69,6 +69,9 @@ class Data_Generator(Sequence):
     def num_features_flat(self):
         return CROPPED_ROWS * CROPPED_COLS * CHANNELS
 
+    def example_shape_tensor(self):
+        return (CROPPED_ROWS, CROPPED_COLS, CHANNELS)
+
     def __len__(self):
         return len(self.xIDs) // self.batch_size
 

@@ -10,7 +10,7 @@ from keras.preprocessing import image
 from keras.utils import layer_utils
 from keras.utils.data_utils import get_file
 from keras.applications.imagenet_utils import preprocess_input
-import pydot
+# import pydot
 # from IPython.display import SVG
 # from keras.utils.vis_utils import model_to_dot
 # from keras.utils import plot_model
@@ -23,12 +23,12 @@ from matplotlib.pyplot import imshow
 
 # %matplotlib inline
 
-def CNN(X_train,y_train,batch_size = 20,epochs = 10):
+def CNN(data_gen,epochs = 10):
     """
    
     """
 
-    X_input = Input(X_train.shape[1:]) #shape: 224x224x3
+    X_input = Input(data_gen.example_shape_tensor()) #shape: 224x224x3
 
     X = ZeroPadding2D((3, 3))(X_input) #shape: 230x230x3
     X = Conv2D(filters=32, kernel_size=(7, 7), strides = (1, 1), name = 'conv0')(X) #shape: 224x224x32
@@ -61,30 +61,26 @@ def CNN(X_train,y_train,batch_size = 20,epochs = 10):
 
     model = Model(inputs = X_input, outputs = X, name='CNN') # Total number of trainable params = 737,537
     model.compile(optimizer = "Adam", loss = 'binary_crossentropy', metrics = ["accuracy"])
-    model.fit(x = X_train, y = y_train, epochs = epochs, batch_size = batch_size)
+    model.fit(data_gen, epochs = epochs)
 
-    return model 
-
-def normalize(X):
-    m = np.shape(X)[0] # number of examples
-    n_H = np.shape(X)[1] 
-    n_W = np.shape(X) [2]
-    n_C = np.shape(X)[3]
-    mu = np.reshape(np.sum(X,axis=0),(n_H,n_W,n_C))/m
-    print(f"Shape normalized X = {((X - mu)/255).shape}")
-    return (X - mu)/255
+    return model
 
 def main():
-    data_train = img_proc.Data_Generator('data/train_sep', 100, shuffle=True, flatten=False)
-    X_train, y_train = data_train.__getitem__(1)
-    print(f"X_train.shape = {X_train.shape}")
-    print(f"y_train.shape = {y_train.shape}")
-    model = CNN(normalize(X_train),y_train, batch_size = 10, epochs = 5)
-    y_train_pred = model.predict(normalize(X_train))
+    BATCH_SIZE = 100
+    data_gen_train = img_proc.Data_Generator('data/train_sep', BATCH_SIZE, shuffle=True, flatten=False)
+    # X_train, y_train = data_train.__getitem__(1)
+    # print(f"X_train.shape = {X_train.shape}")
+    # print(f"y_train.shape = {y_train.shape}")
+    model = CNN(data_gen_train, epochs = 5)
+    model.save('savedCNN')
 
-    data_valid = img_proc.Data_Generator('data/valid', 100, shuffle=True, flatten=False)
-    X_valid, y_valid = data_valid.__getitem__(1)
-    y_valid_pred = model.predict(normalize(X_valid))
+    data_gen_train_test = img_proc.Data_Generator('data/valid', BATCH_SIZE, shuffle=False, flatten=False)
+    y_train = data_gen_train_test.get_labels()
+    y_train_pred = model.predict(data_gen_train_test)
+
+    data_gen_valid = img_proc.Data_Generator('data/valid', BATCH_SIZE, shuffle=False, flatten=False)
+    y_valid = data_gen_valid.get_labels()
+    y_valid_pred = model.predict(data_gen_valid)
     
     #saving data to csv
     data = np.concatenate((y_train,y_train_pred,y_valid,y_valid_pred),axis=1)
