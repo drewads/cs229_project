@@ -39,12 +39,13 @@ class Data_Generator(Sequence):
     """
     Data_Generator
     """
-    def __init__(self, dir_path, batch_size, shuffle=True, flatten=False, model=None):
+    def __init__(self, dir_path, batch_size, shuffle=True, flatten=False, model=None, flatten_post_model=False):
         self.data_dir = Path(dir_path)
         self.batch_size = batch_size
         self.shuffle = shuffle
-        self.flatten = flatten
+        self.flatten_pre_model = flatten
         self.model = model
+        self.flatten_post_model = flatten_post_model
         self.xIDs = []
         self.labels = {}
 
@@ -71,9 +72,15 @@ class Data_Generator(Sequence):
         return labels
 
     def num_features_flat(self):
-        return CROPPED_ROWS * CROPPED_COLS * CHANNELS
+        if self.model:
+            output_shape = self.model.layers[-1].output_shape
+            return output_shape[1] * output_shape[2] * output_shape[3]
+        else:
+            return CROPPED_ROWS * CROPPED_COLS * CHANNELS
 
     def example_shape_tensor(self):
+        if self.model:
+            return self.model.layers[-1].output_shape[1:]
         return (CROPPED_ROWS, CROPPED_COLS, CHANNELS)
 
     def __len__(self):
@@ -84,21 +91,29 @@ class Data_Generator(Sequence):
             random.shuffle(self.xIDs)
 
     def __data_generation(self, xID_list):
-        x_shape = (self.batch_size, CROPPED_ROWS*CROPPED_COLS*CHANNELS) if self.flatten else (self.batch_size, CROPPED_ROWS, CROPPED_COLS, CHANNELS)
+        x_shape = (self.batch_size, CROPPED_ROWS*CROPPED_COLS*CHANNELS) if self.flatten_pre_model else (self.batch_size, CROPPED_ROWS, CROPPED_COLS, CHANNELS)
         batch_x = np.empty(x_shape)
         batch_y = np.empty((self.batch_size, 1), dtype=int)
 
         for i, xID in enumerate(xID_list):
             with Image.open(self.data_dir / xID) as img:
-                batch_x[i,] = np.array(flatten_pixels(list(img.getdata())) if self.flatten else unflatten_image(list(img.getdata())))
+                batch_x[i,] = np.array(flatten_pixels(list(img.getdata())) if self.flatten_pre_model else unflatten_image(list(img.getdata())))
                 batch_y[i,] = self.labels[xID]
 
-        return (normalize_flat(batch_x) if self.flatten else normalize_3D(batch_x)), batch_y
+        return (normalize_flat(batch_x) if self.flatten_pre_model else normalize_3D(batch_x)), batch_y
 
     def __getitem__(self, index):
         x, y = self.__data_generation(self.xIDs[index*self.batch_size:(index+1)*self.batch_size])
         if self.model:
             x = self.model.predict(x)
+            print(x.shape)
+            if self.flatten_post_model:
+                x_flattened = np.empty((x.shape[0], self.num_features_flat()))
+                print(x_flattened.shape)
+                for i in range(x.shape[0]):
+                    x_flattened[i,] = np.array(flatten_pixels(flatten_pixels(x[i])))
+                x = x_flattened
+        print(x.shape)
         return x, y
 
 def resize(img):
