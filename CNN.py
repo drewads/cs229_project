@@ -115,7 +115,7 @@ def main(data_dir):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('data_dir', default='data')
+    parser.add_argument('-d', '--data_dir', default='data')
     args = parser.parse_args()
 
     data_dir = Path(args.data_dir)
