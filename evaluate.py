@@ -23,6 +23,8 @@ def counts(y_pred, y_true, threshold = 0.5):
 	fp = 0
 	tn = 0
 	fn = 0
+	np.reshape(y_pred, (-1,))
+	np.reshape(y_true, (-1,))
 	m = np.shape(y_true)[0]
 	for i in range(m):
 		if y_pred[i] >= threshold:
