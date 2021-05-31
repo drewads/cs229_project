@@ -112,7 +112,7 @@ class Data_Generator(Sequence):
                 print(x_flattened.shape)
                 for i in range(x.shape[0]):
                     x_flattened[i,] = np.array(flatten_pixels(flatten_pixels(x[i])))
-                x = x_flattened
+                x = normalize_flat(x_flattened)
         print(x.shape)
         return x, y
 
