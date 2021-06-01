@@ -44,11 +44,14 @@ def main(data_dir):
 	BATCH_SIZE = 100
 	data_gen_train = img_proc.Data_Generator(data_dir / 'train_sep', BATCH_SIZE, shuffle=True, flatten=True)
 
-	print('---------- Training Model ----------')
-	model = DLNN(data_gen_train,[1024,256,64,16,4,1],epochs = 20)
+	# print('---------- Training Model ----------')
+	# model = DLNN(data_gen_train,[1024,256,64,16,4,1],epochs = 20)
 
-	print('---------- Saving Model ----------')
-	model.save('savedDNN_' + str(data_dir))
+	# print('---------- Saving Model ----------')
+	# model.save('savedDNN_' + str(data_dir))
+
+	print('---------- Loading Model Set ----------')
+    model = keras.models.load_model('savedDNN_' + str(data_dir))
 
 	print('---------- Predicting on Training Set ----------')
 	data_gen_train_test = img_proc.Data_Generator(data_dir / 'train_sep', BATCH_SIZE, shuffle=False, flatten=True)
