@@ -23,6 +23,7 @@ def transfer(data_dir, BATCH_SIZE=100):
         include_top=False)
     feats = img_proc.Data_Generator(data_dir / 'train_sep', BATCH_SIZE, shuffle=True, flatten=False, model=base_model, flatten_post_model=True)
     model = DLNN(feats, [1024, 256, 64, 16, 4, 1], epochs=20)
+    model.save('saved_DLNN_transfer')
     data_gen_train_test = img_proc.Data_Generator(data_dir / 'train_sep', BATCH_SIZE, shuffle=False, flatten=False, model=base_model, flatten_post_model=True)
     y_train_pred = model.predict(data_gen_train_test)
     y_train = data_gen_train_test.get_labels()
@@ -31,10 +32,10 @@ def transfer(data_dir, BATCH_SIZE=100):
     y_valid = data_gen_valid.get_labels()
     y_valid_pred = model.predict(data_gen_valid)
 
-    auc_roc,threshold_best = evaluate.ROCandAUROC(y_valid_pred,y_valid,'ROC_valid_data_dlnn.jpeg')
+    auc_roc,threshold_best = evaluate.ROCandAUROC(y_valid_pred,y_valid,'ROC_valid_data_transfer.jpeg')
 
     print(f"\nArea Under ROC = {auc_roc}")
-    tp,fn,fp,tn = evaluate.counts(y_train_pred, y_train, threshold = threshold_best)
+    tp,fn,fp,tn = evaluate.counts(y_train_pred, y_train)
     acc,prec,sens,spec,F1 = evaluate.stats(tp,fn,fp,tn)
     print("\nStats for predictions on train set:")
     print(f"Threshold = {threshold_best}")
@@ -44,7 +45,7 @@ def transfer(data_dir, BATCH_SIZE=100):
     print(f"Specificity = {spec}")
     print(f"F1 score = {F1}")
 
-    tp,fn,fp,tn = evaluate.counts(y_valid_pred, y_valid, threshold = threshold_best)
+    tp,fn,fp,tn = evaluate.counts(y_valid_pred, y_valid)
     acc,prec,sens,spec,F1 = evaluate.stats(tp,fn,fp,tn)
     print("\nStats for predictions on validation set:")
     print(f"Threshold = {threshold_best}")
