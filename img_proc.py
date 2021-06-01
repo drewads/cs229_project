@@ -106,14 +106,14 @@ class Data_Generator(Sequence):
         x, y = self.__data_generation(self.xIDs[index*self.batch_size:(index+1)*self.batch_size])
         if self.model:
             x = self.model.predict(x)
-            print(x.shape)
+            # print(x.shape)
             if self.flatten_post_model:
                 x_flattened = np.empty((x.shape[0], self.num_features_flat()))
-                print(x_flattened.shape)
+                # print(x_flattened.shape)
                 for i in range(x.shape[0]):
                     x_flattened[i,] = np.array(flatten_pixels(flatten_pixels(x[i])))
                 x = normalize_flat(x_flattened)
-        print(x.shape)
+        # print(x.shape)
         return x, y
 
 def resize(img):
