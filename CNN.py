@@ -76,9 +76,9 @@ def main(data_dir):
     model = CNN(data_gen_train, epochs = 20)
     model.save('savedCNN_' + str(data_dir))
 
-    # data_gen_train_test = img_proc.Data_Generator(data_dir / 'valid', BATCH_SIZE, shuffle=False, flatten=False)
-    y_train = data_gen_train.get_labels()
-    y_train_pred = model.predict(data_gen_train)
+    data_gen_train_test = img_proc.Data_Generator(data_dir / 'train_sep', BATCH_SIZE, shuffle=False, flatten=False)
+    y_train = data_gen_train_test.get_labels()
+    y_train_pred = model.predict(data_gen_train_test)
 
     data_gen_valid = img_proc.Data_Generator(data_dir / 'valid', BATCH_SIZE, shuffle=False, flatten=False)
     y_valid = data_gen_valid.get_labels()
