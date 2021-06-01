@@ -49,9 +49,8 @@ def main(data_dir):
 
 	# print('---------- Saving Model ----------')
 	# model.save('savedDNN_' + str(data_dir))
-
 	print('---------- Loading Model Set ----------')
-    model = keras.models.load_model('savedDNN_' + str(data_dir))
+	model = keras.models.load_model('savedDNN_' + str(data_dir))
 
 	print('---------- Predicting on Training Set ----------')
 	data_gen_train_test = img_proc.Data_Generator(data_dir / 'train_sep', BATCH_SIZE, shuffle=False, flatten=True)
