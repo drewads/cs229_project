@@ -17,6 +17,8 @@ from keras.applications.imagenet_utils import preprocess_input
 # from keras.utils.vis_utils import model_to_dot
 # from keras.utils import plot_model
 # from kt_utils import *
+import tensorflow as tf
+from tensorflow import keras
 
 import keras.backend as K
 K.set_image_data_format('channels_last')
@@ -77,7 +79,7 @@ def main(data_dir):
     # model = CNN(data_gen_train, epochs = 20)
     # model.save('savedCNN_' + str(data_dir))
 
-    model = Model.load_model('savedCNN_' + str(data_dir))
+    model = keras.models.load_model('savedCNN_' + str(data_dir))
 
     data_gen_train_test = img_proc.Data_Generator(data_dir / 'train_sep', BATCH_SIZE, shuffle=False, flatten=False)
     y_train = data_gen_train_test.get_labels()
