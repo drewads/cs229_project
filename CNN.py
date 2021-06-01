@@ -70,30 +70,37 @@ def CNN(data_gen,epochs = 10):
     return model
 
 def main(data_dir):
+    print('---------- Loading Training Set ----------')
     BATCH_SIZE = 100
     data_gen_train = img_proc.Data_Generator(data_dir / 'train_sep', BATCH_SIZE, shuffle=True, flatten=False)
     # X_train, y_train = data_train.__getitem__(1)
     # print(f"X_train.shape = {X_train.shape}")
     # print(f"y_train.shape = {y_train.shape}")
 
+    # print('---------- Training Model ----------')
     # model = CNN(data_gen_train, epochs = 20)
     # model.save('savedCNN_' + str(data_dir))
 
+    print('---------- Loading Model Set ----------')
     model = keras.models.load_model('savedCNN_' + str(data_dir))
 
+    print('---------- Predicting on Training Set ----------')
     data_gen_train_test = img_proc.Data_Generator(data_dir / 'train_sep', BATCH_SIZE, shuffle=False, flatten=False)
     y_train = data_gen_train_test.get_labels()
     y_train_pred = model.predict(data_gen_train_test)
 
+    print('---------- Predicting on Validation Set ----------')
     data_gen_valid = img_proc.Data_Generator(data_dir / 'valid', BATCH_SIZE, shuffle=False, flatten=False)
     y_valid = data_gen_valid.get_labels()
     y_valid_pred = model.predict(data_gen_valid)
 
+    print('---------- Predicting on Test Set ----------')
     data_gen_test = img_proc.Data_Generator(data_dir / 'test', BATCH_SIZE, shuffle=False, flatten=False)
     y_test = data_gen_valid.get_labels()
     y_test_pred = model.predict(data_gen_test)
     
     #saving data to csv
+    print('---------- Saving Predictions to csv ----------')
     data_train = np.concatenate((y_train,y_train_pred),axis=1)
     data_valid = np.concatenate((y_valid,y_valid_pred),axis=1)
     data_test = np.concatenate((y_test,y_test_pred),axis=1)
@@ -102,11 +109,13 @@ def main(data_dir):
     np.savetxt('predictions_test_cnn.csv',data_test,delimiter=',',header='y_tes,y_test_pred')
 
     #calculating metrics
+    print('---------- Calculating Threshold and ROC ----------')
     threshold_best_accuracy = evaluate.find_best_threshold(y_valid_pred,y_valid)
     auc_roc_train,threshold_best = evaluate.ROCandAUROC(y_train_pred,y_train,'ROC_train_data_cnn.jpeg', 'ROC_train_data_cnn.csv')
     auc_roc_valid,threshold_best = evaluate.ROCandAUROC(y_valid_pred,y_valid,'ROC_valid_data_cnn.jpeg', 'ROC_valid_data_cnn.csv')
     auc_roc_test,threshold_best = evaluate.ROCandAUROC(y_test_pred,y_test,'ROC_test_data_cnn.jpeg', 'ROC_test_data_cnn.csv')
 
+    print('---------- Calculating Metrics on Train, Validation and Test ----------')
     tp,fn,fp,tn = evaluate.counts(y_train_pred, y_train, threshold = threshold_best_accuracy) #threshold_best)
     acc,prec,sens,spec,F1 = evaluate.stats(tp,fn,fp,tn)
     print("\nStats for predictions on train set:")
