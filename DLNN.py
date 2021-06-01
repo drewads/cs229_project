@@ -52,17 +52,17 @@ def main(data_dir):
 	model.save('savedDNN_' + str(data_dir))
 
 	print('---------- Predicting on Training Set ----------')
-	data_gen_train_test = img_proc.Data_Generator(data_dir / 'train_sep', BATCH_SIZE, shuffle=False, flatten=False)
+	data_gen_train_test = img_proc.Data_Generator(data_dir / 'train_sep', BATCH_SIZE, shuffle=False, flatten=True)
 	y_train = data_gen_train_test.get_labels()
 	y_train_pred = model.predict(data_gen_train_test)
 
 	print('---------- Predicting on Validation Set ----------')
-	data_gen_valid = img_proc.Data_Generator(data_dir / 'valid', BATCH_SIZE, shuffle=False, flatten=False)
+	data_gen_valid = img_proc.Data_Generator(data_dir / 'valid', BATCH_SIZE, shuffle=False, flatten=True)
 	y_valid = data_gen_valid.get_labels()
 	y_valid_pred = model.predict(data_gen_valid)
 
 	print('---------- Predicting on Test Set ----------')
-	data_gen_test = img_proc.Data_Generator(data_dir / 'test', BATCH_SIZE, shuffle=False, flatten=False)
+	data_gen_test = img_proc.Data_Generator(data_dir / 'test', BATCH_SIZE, shuffle=False, flatten=True)
 	y_test = data_gen_valid.get_labels()
 	y_test_pred = model.predict(data_gen_test)
 
