@@ -9,7 +9,7 @@ import img_proc
 from pathlib import Path
 import argparse
 
-def DLNN(data_gen,nn_dims,epochs = 500,batch_size = 25,loss='binary_crossentropy',lambd = 1e-4):
+def DLNN(data_gen,nn_dims,epochs = 20,batch_size = 25,loss='binary_crossentropy',lambd = 1e-4):
 	""" 
 	Inputs:
 		 data_gen - img_proc.Data_Generator that produces (x, y) training data in batches
@@ -34,7 +34,6 @@ def DLNN(data_gen,nn_dims,epochs = 500,batch_size = 25,loss='binary_crossentropy
 
 	trained_model.add(Dense(1, activation='sigmoid',kernel_initializer = 'glorot_uniform',bias_initializer='zeros',kernel_regularizer=regularizers.l2(lambd), bias_regularizer=regularizers.l2(lambd)))
 	print(trained_model.summary())
-	# plot_model(trained_model, to_file='model_plot.png', show_shapes=True, show_layer_names=True)
 	trained_model.compile(loss = loss, optimizer = 'adam', metrics=['accuracy'])
 	trained_model.fit(data_gen, epochs = epochs, use_multiprocessing=True, workers=8)
 
@@ -63,7 +62,7 @@ def main(data_dir):
 
 	print('---------- Predicting on Test Set ----------')
 	data_gen_test = img_proc.Data_Generator(data_dir / 'test', BATCH_SIZE, shuffle=False, flatten=True)
-	y_test = data_gen_valid.get_labels()
+	y_test = data_gen_test.get_labels()
 	y_test_pred = model.predict(data_gen_test)
 
 	#saving data to csv
