@@ -9,6 +9,9 @@ import img_proc
 from pathlib import Path
 import argparse
 
+import tensorflow as tf
+from tensorflow import keras
+
 def DLNN(data_gen,nn_dims,epochs = 20,batch_size = 25,loss='binary_crossentropy',lambd = 1e-4):
 	""" 
 	Inputs:
