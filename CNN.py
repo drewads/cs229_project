@@ -96,7 +96,7 @@ def main(data_dir):
 
     print('---------- Predicting on Test Set ----------')
     data_gen_test = img_proc.Data_Generator(data_dir / 'test', BATCH_SIZE, shuffle=False, flatten=False)
-    y_test = data_gen_valid.get_labels()
+    y_test = data_gen_test.get_labels()
     y_test_pred = model.predict(data_gen_test)
     
     #saving data to csv

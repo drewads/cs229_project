@@ -1,5 +1,7 @@
 import numpy as np
 from PIL import Image
+import tensorflow as tf
+from tensorflow import keras
 
 def grayscale(vector):
     min_val = min(vector)
@@ -10,6 +12,12 @@ def grayscale(vector):
     return grayscale_vector.reshape((224,224))
 
 def main():
+    model = keras.models.load_model('savedCNN_data')
+    for layer in model.layers:
+        weights = layer.get_weights()
+
+    
+
     weights = np.genfromtxt('log_reg_weights.csv', delimiter=",")
     red_weights = [weights[i] for i in range(0,len(weights),3)]
     green_weights = [weights[i] for i in range(1,len(weights),3)]
