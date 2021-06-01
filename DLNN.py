@@ -36,7 +36,7 @@ def DLNN(data_gen,nn_dims,epochs = 500,batch_size = 25,loss='binary_crossentropy
 	print(trained_model.summary())
 	# plot_model(trained_model, to_file='model_plot.png', show_shapes=True, show_layer_names=True)
 	trained_model.compile(loss = loss, optimizer = 'adam', metrics=['accuracy'])
-	trained_model.fit(data_gen, epochs = epochs, use_multiprocessing=False, workers=8)
+	trained_model.fit(data_gen, epochs = epochs, use_multiprocessing=True, workers=8)
 
 	return trained_model
 
