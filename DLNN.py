@@ -46,7 +46,7 @@ def main(data_dir):
 	data_gen_train = img_proc.Data_Generator(data_dir / 'train_sep', BATCH_SIZE, shuffle=True, flatten=True)
 
 	print('---------- Training Model ----------')
-	model = DLNN(data_gen_train,[1024,256,64,16,4,1],epochs = 1)
+	model = DLNN(data_gen_train,[1024,256,64,16,4,1],epochs = 20)
 
 	print('---------- Saving Model ----------')
 	model.save('savedDNN_' + str(data_dir))
