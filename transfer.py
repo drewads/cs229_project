@@ -21,7 +21,7 @@ def transfer(data_dir, BATCH_SIZE=100):
         weights='imagenet',
         input_shape=(224,224,3),
         include_top=False)
-    feats = tf.data.Dataset.from_generator(img_proc.Data_Generator(data_dir / 'train_sep', BATCH_SIZE, shuffle=True, flatten=False, model=base_model, flatten_post_model=True))
+    feats = img_proc.Data_Generator(data_dir / 'train_sep', BATCH_SIZE, shuffle=True, flatten=False, model=base_model, flatten_post_model=True)
     model = DLNN(feats, [1024, 256, 64, 16, 4, 1], epochs=20)
     model.save('saved_DLNN_transfer')
     data_gen_train_test = img_proc.Data_Generator(data_dir / 'train_sep', BATCH_SIZE, shuffle=False, flatten=False, model=base_model, flatten_post_model=True)
