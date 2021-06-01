@@ -73,8 +73,11 @@ def main(data_dir):
     # X_train, y_train = data_train.__getitem__(1)
     # print(f"X_train.shape = {X_train.shape}")
     # print(f"y_train.shape = {y_train.shape}")
-    model = CNN(data_gen_train, epochs = 20)
-    model.save('savedCNN_' + str(data_dir))
+
+    # model = CNN(data_gen_train, epochs = 20)
+    # model.save('savedCNN_' + str(data_dir))
+
+    model = keras.models.load_model('savedCNN_' + str(data_dir))
 
     data_gen_train_test = img_proc.Data_Generator(data_dir / 'train_sep', BATCH_SIZE, shuffle=False, flatten=False)
     y_train = data_gen_train_test.get_labels()
@@ -89,8 +92,12 @@ def main(data_dir):
     y_test_pred = model.predict(data_gen_test)
     
     #saving data to csv
-    data = np.concatenate((y_train,y_train_pred,y_valid,y_valid_pred,y_test,y_test_pred),axis=1)
-    np.savetxt('predictions_cnn.csv',data,delimiter=',',header='y_train,y_train_pred,y_valid,y_valid_pred,y_test,y_test_pred')
+    data_train = np.concatenate((y_train,y_train_pred),axis=1)
+    data_valid = np.concatenate((y_valid,y_valid_pred),axis=1)
+    data_test = np.concatenate((y_test,y_test_pred),axis=1)
+    np.savetxt('predictions_train_cnn.csv',data_train,delimiter=',',header='y_train,y_train_pred')
+    np.savetxt('predictions_valid_cnn.csv',data_valid,delimiter=',',header='y_valid,y_valid_pred')
+    np.savetxt('predictions_test_cnn.csv',data_test,delimiter=',',header='y_tes,y_test_pred')
 
     #calculating metrics
     threshold_best_accuracy = evaluate.find_best_threshold(y_valid_pred,y_valid)
