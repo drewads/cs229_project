@@ -70,7 +70,7 @@ def main(data_dir,BATCH_SIZE=100):
     feats = img_proc.Data_Generator(data_dir / 'train_sep', BATCH_SIZE, shuffle=True, flatten=False)
 
     print('---------- Training Model ----------')
-    model = transfer_learning(feats, base_model, epochs=1)
+    model = transfer_learning(feats, base_model, epochs=20)
 
     print('---------- Saving Model ----------')
     model.save('saved_transfer_model')
