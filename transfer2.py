@@ -95,16 +95,16 @@ def main(data_dir,BATCH_SIZE=100):
     data_train = np.concatenate((y_train,y_train_pred),axis=1)
     data_valid = np.concatenate((y_valid,y_valid_pred),axis=1)
     data_test = np.concatenate((y_test,y_test_pred),axis=1)
-    np.savetxt('predictions_train_cnn.csv',data_train,delimiter=',',header='y_train,y_train_pred')
-    np.savetxt('predictions_valid_cnn.csv',data_valid,delimiter=',',header='y_valid,y_valid_pred')
-    np.savetxt('predictions_test_cnn.csv',data_test,delimiter=',',header='y_tes,y_test_pred')
+    np.savetxt('predictions_train_transfer.csv',data_train,delimiter=',',header='y_train,y_train_pred')
+    np.savetxt('predictions_valid_transfer.csv',data_valid,delimiter=',',header='y_valid,y_valid_pred')
+    np.savetxt('predictions_test_transfer.csv',data_test,delimiter=',',header='y_tes,y_test_pred')
 
     #calculating metrics
     print('---------- Calculating Threshold and ROC ----------')
     threshold_best_accuracy = evaluate.find_best_threshold(y_valid_pred,y_valid)
-    auc_roc_train,threshold_best = evaluate.ROCandAUROC(y_train_pred,y_train,'ROC_train_data_cnn.jpeg', 'ROC_train_data_cnn.csv')
-    auc_roc_valid,threshold_best = evaluate.ROCandAUROC(y_valid_pred,y_valid,'ROC_valid_data_cnn.jpeg', 'ROC_valid_data_cnn.csv')
-    auc_roc_test,threshold_best = evaluate.ROCandAUROC(y_test_pred,y_test,'ROC_test_data_cnn.jpeg', 'ROC_test_data_cnn.csv')
+    auc_roc_train,threshold_best = evaluate.ROCandAUROC(y_train_pred,y_train,'ROC_train_data_transfer.jpeg', 'ROC_train_data_transfer.csv')
+    auc_roc_valid,threshold_best = evaluate.ROCandAUROC(y_valid_pred,y_valid,'ROC_valid_data_transfer.jpeg', 'ROC_valid_data_transfer.csv')
+    auc_roc_test,threshold_best = evaluate.ROCandAUROC(y_test_pred,y_test,'ROC_test_data_transfer.jpeg', 'ROC_test_data_transfer.csv')
 
     print('---------- Calculating Metrics on Train, Validation and Test ----------')
     tp,fn,fp,tn = evaluate.counts(y_train_pred, y_train, threshold = threshold_best_accuracy) #threshold_best)
