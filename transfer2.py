@@ -45,7 +45,6 @@ def transfer_learning(data_gen, base_model, epochs=20):
 
     X = Flatten()(X) #shape: 8192
     X = Dense(units=1024, activation='relu', name='fc1')(X)
-    X = Dense(units=256, activation='relu', name='fc2')(X)
     X = Dense(units=32, activation='relu', name='fc3')(X)
     X = Dense(units=1, activation='sigmoid', name='fc4')(X)
 
@@ -60,6 +59,10 @@ def main(data_dir,BATCH_SIZE=100):
         weights='imagenet',
         input_shape=(224,224,3),
         include_top=False)
+
+    for layer in base_model.layers:
+        layer.trainable = False
+
     
     print('---------- Loading Training Set ----------')
     feats = img_proc.Data_Generator(data_dir / 'train_sep', BATCH_SIZE, shuffle=True, flatten=False)
