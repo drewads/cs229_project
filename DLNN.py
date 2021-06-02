@@ -9,6 +9,9 @@ import img_proc
 from pathlib import Path
 import argparse
 
+import tensorflow as tf
+from tensorflow import keras
+
 def DLNN(data_gen,nn_dims,epochs = 20,batch_size = 25,loss='binary_crossentropy',lambd = 1e-4):
 	""" 
 	Inputs:
@@ -35,7 +38,7 @@ def DLNN(data_gen,nn_dims,epochs = 20,batch_size = 25,loss='binary_crossentropy'
 	trained_model.add(Dense(1, activation='sigmoid',kernel_initializer = 'glorot_uniform',bias_initializer='zeros',kernel_regularizer=regularizers.l2(lambd), bias_regularizer=regularizers.l2(lambd)))
 	print(trained_model.summary())
 	trained_model.compile(loss = loss, optimizer = 'adam', metrics=['accuracy'])
-	trained_model.fit(data_gen, epochs = epochs, use_multiprocessing=True, workers=8)
+	trained_model.fit(tf.data.Dataset.from_generator(data_gen.__getitem__,output_types = tf.float16), epochs = epochs, use_multiprocessing=True, workers=8)
 
 	return trained_model
 
@@ -49,9 +52,8 @@ def main(data_dir):
 
 	# print('---------- Saving Model ----------')
 	# model.save('savedDNN_' + str(data_dir))
-
 	print('---------- Loading Model Set ----------')
-    model = keras.models.load_model('savedDNN_' + str(data_dir))
+	model = keras.models.load_model('savedDNN_' + str(data_dir))
 
 	print('---------- Predicting on Training Set ----------')
 	data_gen_train_test = img_proc.Data_Generator(data_dir / 'train_sep', BATCH_SIZE, shuffle=False, flatten=True)
