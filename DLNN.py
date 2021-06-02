@@ -38,7 +38,7 @@ def DLNN(data_gen,nn_dims,epochs = 20,batch_size = 25,loss='binary_crossentropy'
 	trained_model.add(Dense(1, activation='sigmoid',kernel_initializer = 'glorot_uniform',bias_initializer='zeros',kernel_regularizer=regularizers.l2(lambd), bias_regularizer=regularizers.l2(lambd)))
 	print(trained_model.summary())
 	trained_model.compile(loss = loss, optimizer = 'adam', metrics=['accuracy'])
-	trained_model.fit(data_gen, epochs = epochs, use_multiprocessing=True, workers=8)
+	trained_model.fit(tf.data.Dataset.from_generator(data_gen.__getitem__,output_types = tf.float16), epochs = epochs, use_multiprocessing=True, workers=8)
 
 	return trained_model
 
