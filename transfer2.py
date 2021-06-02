@@ -51,7 +51,7 @@ def transfer_learning(data_gen, base_model, epochs=20):
 
     model = Model(inputs = X_input, outputs = X, name='CNN') # Total number of trainable params = 737,537
     model.compile(optimizer = "Adam", loss = 'binary_crossentropy', metrics = ["accuracy"])
-    model.fit(data_gen, epochs = epochs, use_multiprocessing=True, workers=8)
+    model.fit(data_gen, epochs = epochs, use_multiprocessing=False)#, workers=8)
 
     return model
 
