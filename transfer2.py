@@ -43,12 +43,11 @@ def transfer_learning(data_gen, base_model, epochs=20):
     # X = MaxPooling2D(pool_size=(3, 3), strides=(2,2),name='max_pool1')(X) #shape: 2x2x4096
 
     X = Flatten()(X) #shape: 16,384
-    X = Dense(units=1024, activation='relu', name='fc0')(X)
-    X = Dense(units=256, activation='relu', name='fc1')(X)
-    X = Dense(units=64, activation='relu', name='fc2')(X)
-    X = Dense(units=16, activation='relu', name='fc3')(X)
-    X = Dense(units=4, activation='relu', name='fc4')(X)
-    X = Dense(units=1, activation='sigmoid', name='fc5')(X)
+    X = Dense(units=4096, activation='relu', name='fc0')(X)
+    X = Dense(units=1024, activation='relu', name='fc1')(X)
+    X = Dense(units=256, activation='relu', name='fc2')(X)
+    X = Dense(units=32, activation='relu', name='fc3')(X)
+    X = Dense(units=1, activation='sigmoid', name='fc4')(X)
 
     model = Model(inputs = X_input, outputs = X, name='CNN') # Total number of trainable params = 737,537
     model.compile(optimizer = "Adam", loss = 'binary_crossentropy', metrics = ["accuracy"])
