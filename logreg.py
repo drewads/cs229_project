@@ -8,17 +8,18 @@ def main():
     """Problem: Logistic regression
     """
 
-    step_size = 0.01
+    step_size = 0.1
     TRAIN_DATA_BATCH_SIZE = 3000
-    BATCH_SIZE = 200
+    BATCH_SIZE = 500
     TRAIN_DATA_DIR = 'data_3000'
     data_dir = 'data'
     data_gen_train = img_proc.Data_Generator(TRAIN_DATA_DIR + '/train_sep', TRAIN_DATA_BATCH_SIZE, shuffle=True,
                                              flatten=True)
     x_train, y_train = data_gen_train.__getitem__(0)
     print("mini batch")
-    model = LogisticRegression()
+    model = LogisticRegression(step_size=step_size)
     model.fit_mini_batch(x_train, y_train, BATCH_SIZE)
+    # model.fit(x_train, y_train)
     model.save_weights()
 
     print('---------- Predicting on Training Set ----------')
@@ -31,18 +32,18 @@ def main():
 
     print('---------- Predicting on Test Set ----------')
     data_gen_test = img_proc.Data_Generator('data/test', BATCH_SIZE, shuffle=False, flatten=True)
-    y_test = data_gen_valid.get_labels()
+    y_test = data_gen_test.get_labels()
     y_test_pred = model.predict_from_gen(data_gen_test)
 
     # calculating metrics
     print('---------- Calculating Threshold and ROC ----------')
     threshold_best_accuracy = evaluate.find_best_threshold(y_valid_pred, y_valid)
-    auc_roc_train, threshold_best = evaluate.ROCandAUROC(y_train_pred, y_train, 'ROC_train_data_cnn.jpeg',
-                                                         'ROC_train_data_cnn.csv')
-    auc_roc_valid, threshold_best = evaluate.ROCandAUROC(y_valid_pred, y_valid, 'ROC_valid_data_cnn.jpeg',
-                                                         'ROC_valid_data_cnn.csv')
-    auc_roc_test, threshold_best = evaluate.ROCandAUROC(y_test_pred, y_test, 'ROC_test_data_cnn.jpeg',
-                                                        'ROC_test_data_cnn.csv')
+    auc_roc_train, threshold_best = evaluate.ROCandAUROC(y_train_pred, y_train, 'ROC_train_data_logreg.jpeg',
+                                                         'ROC_train_data_logreg.csv')
+    auc_roc_valid, threshold_best = evaluate.ROCandAUROC(y_valid_pred, y_valid, 'ROC_valid_data_logreg.jpeg',
+                                                         'ROC_valid_data_logreg.csv')
+    auc_roc_test, threshold_best = evaluate.ROCandAUROC(y_test_pred, y_test, 'ROC_test_data_logreg.jpeg',
+                                                        'ROC_test_data_logreg.csv')
 
     print('---------- Calculating Metrics on Train, Validation and Test ----------')
     tp, fn, fp, tn = evaluate.counts(y_train_pred, y_train)  # threshold_best)
@@ -111,7 +112,7 @@ class LogisticRegression:
             x: Training example inputs. Shape (n_examples, dim).
             y: Training example labels. Shape (n_examples,).
         """
-        if self.theta == None:
+        if not self.theta:
             self.theta = np.zeros(np.shape(x)[1])
         for i in range(self.max_iter):
             addition = np.zeros(len(x[0]))
@@ -138,28 +139,6 @@ class LogisticRegression:
                     print(f"It took {i} iterations with step size {self.step_size}")
                     return
 
-    # def fit_from_gen(self, data_gen):
-    #     if self.theta == None:
-    #         self.theta = np.zeros(data_gen.num_features_flat())
-    #
-    #     for epoch in range(self.max_iter):
-    #         error_epoch = 0
-    #         for batch in range(data_gen.__len__()):
-    #             x_batch, y_batch = data_gen.__getitem__(batch)
-    #             gradient = np.zeros(data_gen.num_features_flat())
-    #
-    #             for i in range(x_batch.shape[0]):
-    #                 gradient += x_batch[i] * (y_batch[i] - self.sigmoid_theta(x_batch[i]))
-    #             self.theta += self.step_size * gradient
-    #
-    #             error_epoch += np.linalg.norm(gradient * self.step_size)
-    #
-    #         print(f"Average error on epoch {epoch} is {error_epoch}")
-    #         if (error_epoch / data_gen.__len__() < self.eps):
-    #             print(f"It took {i} iterations with step size {self.step_size}")
-    #             return
-    #
-    #         data_gen.on_epoch_end()
 
     def predict_from_gen(self, data_gen):
         outputs = []
@@ -167,7 +146,6 @@ class LogisticRegression:
         for batch in range(data_gen.__len__()):
             x_batch, y_batch = data_gen.__getitem__(batch)
             predicted_probability_batch = self.sigmoid_theta(x_batch)
-            # outputs_batch = np.rint(predicted_probability_batch)
             outputs_batch = predicted_probability_batch
             for i in range(outputs_batch.shape[0]):
                 outputs.append(outputs_batch[i])
@@ -184,14 +162,6 @@ class LogisticRegression:
             Outputs of shape (n_examples,).
         """
         return self.sigmoid_theta(x)
-        # predicted_probability = self.sigmoid_theta(x)
-        # outputs = np.empty(predicted_probability.shape)
-        # for i in range(len(x)):
-        #     if predicted_probability[i] >= 0.5:
-        #         outputs[i] = 1
-        #     else:
-        #         outputs[i] = 0
-        # return outputs
 
 
 if __name__ == '__main__':

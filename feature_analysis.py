@@ -12,11 +12,9 @@ def grayscale(vector):
     return grayscale_vector.reshape((224,224))
 
 def main():
-    model = keras.models.load_model('savedCNN_data')
-    for layer in model.layers:
-        weights = layer.get_weights()
-
-    
+    # model = keras.models.load_model('savedCNN_data')
+    # for layer in model.layers:
+    #     weights = layer.get_weights()
 
     weights = np.genfromtxt('log_reg_weights.csv', delimiter=",")
     red_weights = [weights[i] for i in range(0,len(weights),3)]
@@ -29,23 +27,35 @@ def main():
     grayscale_red = grayscale(red_weights)
     grayscale_green = grayscale(green_weights)
     grayscale_blue = grayscale(blue_weights)
-    # print(grayscale_red[0])
-    # tmp = np.empty(224)
-    # for i in range(224):
-    #     tmp[i] = (red_weights[i]-min(red_weights))/(max(red_weights)-min(red_weights))
-    # print(tmp[0:224])
+
+    #multiple by 255
+    red_proc = np.uint8(grayscale_red * 255)
+    green_proc = np.uint8(grayscale_green * 255)
+    blue_proc = np.uint8(grayscale_blue * 255)
+
+
+    data = np.zeros((224, 224, 3), dtype=np.uint8)
+    data[:,:,0] = red_proc
+    data[:,:,1] = green_proc
+    data[:,:,2] = blue_proc
+    img2 = Image.fromarray(data, 'RGB')
+    img2.save('logreg_weights_all_visualized.jpeg')
+    img2.show()
 
     # Creates PIL image
-    img = Image.fromarray(np.uint8(grayscale_red * 255), 'L')
-    img.show()
+    img_red = Image.fromarray(np.uint8(grayscale_red * 255), 'L')
+    img_red.save('red_weights.jpeg')
+    img_red.show()
 
     # Creates PIL image
-    img = Image.fromarray(np.uint8(grayscale_green * 255), 'L')
-    img.show()
+    img_green = Image.fromarray(np.uint8(grayscale_green * 255), 'L')
+    img_green.save('green_weights.jpeg')
+    img_green.show()
 
     # Creates PIL image
-    img = Image.fromarray(np.uint8(grayscale_blue * 255), 'L')
-    img.show()
+    img_blue = Image.fromarray(np.uint8(grayscale_blue * 255), 'L')
+    img_blue.save('blue_weights.jpeg')
+    img_blue.show()
 
 
 
