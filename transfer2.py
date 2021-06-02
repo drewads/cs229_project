@@ -30,18 +30,17 @@ def transfer_learning(data_gen, base_model, epochs=20):
 
     X = base_model(X_input)
     
-    # start making layers here
-    X = ZeroPadding2D((3, 3))(X) #shape: 13x13x2048
-    X = Conv2D(filters=2048, kernel_size=(7, 7), strides = (1, 1), name = 'conv0')(X) #shape: 7x7x2048
-    X = BatchNormalization(axis = 3, name = 'bn0')(X)
-    X = Activation('relu')(X)
-    X = MaxPooling2D(pool_size=(3, 3), strides=(2,2),name='max_pool0')(X) #shape: 3x3x2048
+    # X = ZeroPadding2D((3, 3))(X) #shape: 13x13x2048
+    # X = Conv2D(filters=2048, kernel_size=(7, 7), strides = (1, 1), name = 'conv0')(X) #shape: 7x7x2048
+    # X = BatchNormalization(axis = 3, name = 'bn0')(X)
+    # X = Activation('relu')(X)
+    # X = MaxPooling2D(pool_size=(3, 3), strides=(2,2),name='max_pool0')(X) #shape: 3x3x2048
 
-    X = ZeroPadding2D((1, 1))(X) #shape: 5x5x2048
-    X = Conv2D(filters=4096, kernel_size=(3, 3), strides = (1, 1), name = 'conv1')(X) #shape: 3x3x4096
+    # X = ZeroPadding2D((1, 1))(X) #shape: 5x5x2048
+    # X = Conv2D(filters=4096, kernel_size=(3, 3), strides = (1, 1), name = 'conv1')(X) #shape: 3x3x4096
     X = BatchNormalization(axis = 3, name = 'bn1')(X)
-    X = Activation('relu')(X)
-    X = MaxPooling2D(pool_size=(3, 3), strides=(2,2),name='max_pool1')(X) #shape: 2x2x4096
+    # X = Activation('relu')(X)
+    # X = MaxPooling2D(pool_size=(3, 3), strides=(2,2),name='max_pool1')(X) #shape: 2x2x4096
 
     X = Flatten()(X) #shape: 16,384
     X = Dense(units=4096, activation='relu', name='fc0')(X)
