@@ -38,13 +38,12 @@ def transfer_learning(data_gen, base_model, epochs=20):
     X = MaxPooling2D(pool_size=(3, 3), strides=(2,2),name='max_pool0')(X) #shape: 3x3x2048
 
     X = ZeroPadding2D((1, 1))(X) #shape: 5x5x2048
-    X = Conv2D(filters=4096, kernel_size=(3, 3), strides = (1, 1), name = 'conv1')(X) #shape: 3x3x4096
+    X = Conv2D(filters=2048, kernel_size=(3, 3), strides = (1, 1), name = 'conv1')(X) #shape: 3x3x2048
     X = BatchNormalization(axis = 3, name = 'bn1')(X)
     X = Activation('relu')(X)
-    X = MaxPooling2D(pool_size=(3, 3), strides=(2,2),name='max_pool1')(X) #shape: 2x2x4096
+    X = MaxPooling2D(pool_size=(3, 3), strides=(2,2),name='max_pool1')(X) #shape: 2x2x2048
 
-    X = Flatten()(X) #shape: 16384
-    X = Dense(units=4096, activation='relu', name='fc0')(X)
+    X = Flatten()(X) #shape: 8192
     X = Dense(units=1024, activation='relu', name='fc1')(X)
     X = Dense(units=256, activation='relu', name='fc2')(X)
     X = Dense(units=32, activation='relu', name='fc3')(X)
