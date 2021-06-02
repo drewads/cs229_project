@@ -25,7 +25,7 @@ def transfer(data_dir, BATCH_SIZE=100):
     feats = img_proc.Data_Generator(data_dir / 'train_sep', BATCH_SIZE, shuffle=True, flatten=False, model=base_model, flatten_post_model=True)
     
     print('---------- Training DLNN ----------')
-    model = DLNN(tf.data.Dataset.from_generator(feats.__getitem__), [1024, 256, 64, 16, 4, 1], epochs=1)
+    model = DLNN(tf.data.Dataset.from_generator(feats.__getitem__,output_types = tf.float16), [1024, 256, 64, 16, 4, 1], epochs=1)
 
     print('---------- Saving Model ----------')
     model.save('saved_DLNN_transfer')
